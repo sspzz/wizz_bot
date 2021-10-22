@@ -1,0 +1,10 @@
+os
+re
+sys
+json
+shutil
+asyncio
+urllib.request
+zipfile
+imageio
+discord
