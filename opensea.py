@@ -2,12 +2,15 @@ import requests
 import json
 from dateutil.parser import parse
 
+referral_address = "0x73efda13bc0d0717b4f2f36418279fd4e2cd0af9"
 contract_wizards = "0x521f9c7505005cfa19a8e5786a9c3c9c9f5e6f42"
 contract_flames = "0x31158181b4b91a423bfdc758fc3bf8735711f9c5"
 
+__use_referrrals = False
+
 class Listing(object):
-	def __init__(self, wiz_id, name, image_url, price, currency, date, permalink):
-		self.wiz_id = wiz_id
+	def __init__(self, token_id, name, image_url, price, currency, date, permalink):
+		self.token_id = token_id
 		self.name = name
 		self.image_url = image_url
 		self.price = price
@@ -19,9 +22,16 @@ class Listing(object):
 	def date_str(self):
 		return self.date.strftime('%d/%m/%Y %H:%M')
 
+	@property
+	def url(self):
+		if __use_referrrals:
+			return "{}?ref={}".format(self.permalink, referral_address)
+		else:
+			return self.permalink
+
 	@staticmethod
 	def from_json(json):
-		wiz_id = json.get("asset").get("token_id")
+		token_id = json.get("asset").get("token_id")
 		name = json.get("asset").get("name")
 		image_url = json.get("asset").get("image_url")
 		price_str = json.get("total_price")
@@ -31,11 +41,16 @@ class Listing(object):
 		currency = json.get("payment_token").get("symbol")
 		date = parse(json.get("created_date"))
 		link = json.get("asset").get("permalink")
-		return Listing(wiz_id, name, image_url, price, currency, date, link)
+		return Listing(token_id, name, image_url, price, currency, date, link)
 
 	def __repr__(self):
-		return "{}, #{} - {}, {} {}".format(self.date_str, self.wiz_id, self.name, self.price, self.currency)
+		return "{}, #{} - {}, {} {}".format(self.date_str, self.token_id, self.name, self.price, self.currency)
 
+def get_wiz_url(wiz_id):
+	if __use_referrrals:
+		return "https://opensea.io/assets/{}/{}?ref={}".format(contract_wizards, wiz_id, referral_address)
+	else:
+		return "https://opensea.io/assets/{}/{}".format(contract_wizards, wiz_id)
 
 def get_listings(contract_address, num):
 	parameters = { 

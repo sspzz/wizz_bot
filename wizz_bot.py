@@ -87,7 +87,7 @@ async def wizard_turnaround(ctx, wiz_id):
 	logger.info("TURNAROUND %s", wiz_id)
 	wizard = WizardFactory.get_wizard(wiz_id)
 	if wizard is not None:
-		await DiscordUtils.embed_image(ctx, wizard.name.title(), wizard.turnaround, "{}.gif".format(wiz_id))
+		await DiscordUtils.embed_image(ctx, wizard.name.title(), wizard.turnaround, "{}.gif".format(wiz_id), url=wizard.url)
 	else:
 		await ctx.send("Could not summon wizard {}".format(wiz_id))
 
@@ -96,7 +96,7 @@ async def wizard_turnaround_large(ctx, wiz_id):
 	logger.info("TURNAROUND %s", wiz_id)
 	wizard = WizardFactory.get_wizard(wiz_id)
 	if wizard is not None:
-		await DiscordUtils.embed_image(ctx, wizard.name.title(), wizard.turnaround_large, "{}.gif".format(wiz_id))
+		await DiscordUtils.embed_image(ctx, wizard.name.title(), wizard.turnaround_large, "{}.gif".format(wiz_id), url=wizard.url)
 	else:
 		await ctx.send("Could not summon wizard {}".format(wiz_id))
 
@@ -108,7 +108,7 @@ async def wizard_mugshot(ctx, wiz_id):
 	logger.info("MUGSHOT %s", wiz_id)
 	wizard = WizardFactory.get_wizard(wiz_id)
 	if wizard is not None:
-		await DiscordUtils.embed_image(ctx, wizard.name.title(), wizard.mugshot, "{}.png".format(wiz_id))
+		await DiscordUtils.embed_image(ctx, wizard.name.title(), wizard.mugshot, "{}.png".format(wiz_id), url=wizard.url)
 	else:
 		await ctx.send("Could not summon wizard {}".format(wiz_id))
 
@@ -120,7 +120,7 @@ async def wizard_mugshot_turnaround(ctx, wiz_id):
 	logger.info("MUGSHOT TURNAROUND %s", wiz_id)
 	wizard = WizardFactory.get_wizard(wiz_id)
 	if wizard is not None:
-		await DiscordUtils.embed_image(ctx, wizard.name.title(), wizard.turnaround_mugshot, "{}.gif".format(wiz_id))
+		await DiscordUtils.embed_image(ctx, wizard.name.title(), wizard.turnaround_mugshot, "{}.gif".format(wiz_id), url=wizard.url)
 	else:
 		await ctx.send("Could not summon wizard {}".format(wiz_id))
 
@@ -129,7 +129,7 @@ async def wizard_mugshot_turnaround_large(ctx, wiz_id):
 	logger.info("MUGSHOT TURNAROUND %s", wiz_id)
 	wizard = WizardFactory.get_wizard(wiz_id)
 	if wizard is not None:
-		await DiscordUtils.embed_image(ctx, wizard.name.title(), wizard.turnaround_mugshot_large, "{}.gif".format(wiz_id))
+		await DiscordUtils.embed_image(ctx, wizard.name.title(), wizard.turnaround_mugshot_large, "{}.gif".format(wiz_id), url=wizard.url)
 	else:
 		await ctx.send("Could not summon wizard {}".format(wiz_id))
 
@@ -143,7 +143,7 @@ async def listings(ctx, num):
 		num = int(num)
 		listings = opensea.get_listings(opensea.contract_wizards, min(20, num))
 		thumbnail = listings[0].image_url
-		fields = map(lambda l: (l.name, "[#{}]({}) listed for {} {}".format(l.wiz_id, l.permalink, l.price, l.currency)), listings)
+		fields = map(lambda l: (l.name, "[#{}]({}) listed for {} {}".format(l.token_id, l.url, l.price, l.currency)), listings)
 		await DiscordUtils.embed_fields(ctx, "Recent Listings", fields=fields, thumbnail=thumbnail, inline=False)
 	except Exception as e:
 		print("Error: {}".format(str(e)))
@@ -155,7 +155,7 @@ async def sales(ctx, num):
 		num = int(num)
 		sales = opensea.get_sales(opensea.contract_wizards, min(20, num))
 		thumbnail = sales[0].image_url
-		fields = map(lambda l: (l.name, "[#{}]({}) sold for {} {}".format(l.wiz_id, l.permalink, l.price, l.currency)), sales)
+		fields = map(lambda l: (l.name, "[#{}]({}) sold for {} {}".format(l.token_id, l.url, l.price, l.currency)), sales)
 		await DiscordUtils.embed_fields(ctx, "Recent Sales", fields=fields, thumbnail=thumbnail, inline=False)
 	except Exception as e:
 		print("Error: {}".format(str(e)))
@@ -178,9 +178,9 @@ Burning a Wizard, however, is Dark Magic which is always risky and unpredictable
 
 So choose wisely.
 
-[Read more about the Great Burning](https://www.forgottenrunes.com/posts/forgotten-souls)"""
+[Read more about The Great Burning](https://www.forgottenrunes.com/posts/forgotten-souls)"""
 	floor = "Last price: {} {}".format(listing.price, listing.currency)
-	await DiscordUtils.embed_image(ctx, title, file, filename, description=description, footer=floor, url=listing.permalink)
+	await DiscordUtils.embed_image(ctx, title, file, filename, description=description, footer=floor, url=listing.url)
 
 
 #

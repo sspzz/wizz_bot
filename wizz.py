@@ -8,6 +8,7 @@ import imageio
 import asyncio
 import random
 from PIL import Image, ImageSequence
+from opensea import get_wiz_url
 
 class Wizard(object):
     def __init__(self, wiz_id, artwork_root):
@@ -22,6 +23,10 @@ class Wizard(object):
         if re_name is not None:
             return re_name.group(1).lower()
         return None
+
+    @property
+    def url(self):
+        return get_wiz_url(self.wiz_id)
 
     @property
     def path(self):
@@ -170,11 +175,11 @@ async def interactive():
         if wizard == "exit":
             return
         else:
-            get_wizard_artwork(wizard, refresh=True)
+            summon_wizards([wizard])
 
 async def summon_wizards(wizards):
     for wizard in wizards:
-        WizardFactory.get_wizard(wizard, refresh=False)
+        print(WizardFactory.get_wizard(wizard, refresh=False).url)
 
 async def main(argv):
     if len(argv) == 0:
