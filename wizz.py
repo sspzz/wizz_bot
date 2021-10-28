@@ -7,7 +7,7 @@ import zipfile
 import imageio
 import asyncio
 import random
-from PIL import Image, ImageSequence
+from PIL import Image, ImageSequence, ImageEnhance, ImageDraw, ImageFont
 from opensea import get_wiz_url
 
 class Wizard(object):
@@ -56,6 +56,9 @@ class Wizard(object):
     def turnaround_mugshot_large(self):
         return "{}/{}-mugshot.gif".format(self.path, self.wiz_id)
 
+    @property
+    def rip(self):
+        return "{}/rip.png".format(self.path, self.wiz_id)
 
 class WizardFactory:
     @staticmethod
@@ -155,12 +158,52 @@ class WizardFactory:
                     wiz_body = Image.open("{}/50/{}".format(wizard.path, filename))            
             gen_mugshot(wizard.mugshot, wiz_head, wiz_body, mugshot_rand_bg_path, mugshot_rand_frame_path)
 
+
             # Generate animated turnaround GIFs        
             turnarounds_path = "{}/50/turnarounds".format(wizard.path)
             gen_turnaround(turnarounds_path, wizard.turnaround)
             gen_turnaround(turnarounds_path, wizard.turnaround_large, dim=(400, 400))
             gen_turnaround(turnarounds_path, wizard.turnaround_mugshot, mugshot_rand_bg_path, mugshot_rand_frame_path)
             gen_turnaround(turnarounds_path, wizard.turnaround_mugshot_large, mugshot_rand_bg_path, mugshot_rand_frame_path, (400, 400))
+
+
+            def gen_rip(target, background, overlay, size=(520, 520), offset=(42, 34)):
+                def desaturate(img):
+                    enhancer = ImageEnhance.Color(img)
+                    img = enhancer.enhance(0.46)
+                    return img
+                
+                def text(text, dimensions, offset):
+                    fnt = ImageFont.truetype("resources/veil/rip/alagard.ttf", 24)
+                    txt = Image.new("RGBA", dimensions, (255,255,255,0))
+                    d = ImageDraw.Draw(txt)
+                    d.text(offset, text, font=fnt, fill=(82,64,50,255))
+                    return txt
+
+                fp_bg = Image.open(background)
+                fp_frame = Image.open(overlay)
+                wiz_head = None # Damn you headless wizard, this is for you
+                for filename in sorted(os.listdir("{}/50".format(wizard.path))):
+                    if filename.startswith("head"):
+                        wiz_head = Image.open("{}/50/{}".format(wizard.path, filename))
+                        wiz_head = desaturate(wiz_head)
+                    if filename.startswith("body"):
+                        wiz_body = Image.open("{}/50/{}".format(wizard.path, filename))            
+                        wiz_body = desaturate(wiz_body)
+                    if filename.startswith("prop"):
+                        wiz_prop = Image.open("{}/50/{}".format(wizard.path, filename))            
+                        wiz_prop = desaturate(wiz_prop)
+                fp_bg.paste(wiz_body, offset, wiz_body)
+                fp_bg.paste(wiz_prop, offset, wiz_prop)
+                if wiz_head is not None:
+                    fp_bg.paste(wiz_head, offset, wiz_head)
+                fp_bg.paste(fp_frame, (0, 0), fp_frame)
+                fp_final = fp_bg.resize(size, Image.NEAREST)
+                title = text("Rest In Peace", fp_final.size, (192, 50))
+                fp_final.paste(title, (0,0), title)
+                fp_final.save(target)
+
+            gen_rip(wizard.rip, "{}/resources/veil/rip/bg.png".format(os.getcwd()), "{}/resources/veil/rip/fg.png".format(os.getcwd()))
 
         except Exception as e:
             print("Error: {}".format(str(e)))
@@ -179,7 +222,7 @@ async def interactive():
 
 async def summon_wizards(wizards):
     for wizard in wizards:
-        print(WizardFactory.get_wizard(wizard, refresh=False).url)
+        WizardFactory.get_wizard(wizard, refresh=False)
 
 async def main(argv):
     if len(argv) == 0:
