@@ -173,11 +173,11 @@ class WizardFactory:
                     img = enhancer.enhance(0.46)
                     return img
                 
-                def text(text, dimensions, offset):
-                    fnt = ImageFont.truetype("resources/veil/rip/alagard.ttf", 24)
+                def text(text, dimensions, offset, font_size=24, font_color=(82,64,50,255)):
+                    fnt = ImageFont.truetype("resources/veil/rip/alagard.ttf", font_size)
                     txt = Image.new("RGBA", dimensions, (255,255,255,0))
                     d = ImageDraw.Draw(txt)
-                    d.text(offset, text, font=fnt, fill=(82,64,50,255))
+                    d.text(offset, text, font=fnt, fill=font_color)
                     return txt
 
                 fp_bg = Image.open(background)
@@ -199,8 +199,10 @@ class WizardFactory:
                     fp_bg.paste(wiz_head, offset, wiz_head)
                 fp_bg.paste(fp_frame, (0, 0), fp_frame)
                 fp_final = fp_bg.resize(size, Image.NEAREST)
-                title = text("Rest In Peace", fp_final.size, (192, 50))
+                title = text("Rest In Peace", fp_final.size, (192, 49))
                 fp_final.paste(title, (0,0), title)
+                subtitle = text("Burned, But Notte Forgotten", fp_final.size, (158, 450), 16, (20,15,12,140))
+                fp_final.paste(subtitle, (0,0), subtitle)
                 fp_final.save(target)
 
             gen_rip(wizard.rip, "{}/resources/veil/rip/bg.png".format(os.getcwd()), "{}/resources/veil/rip/fg.png".format(os.getcwd()))

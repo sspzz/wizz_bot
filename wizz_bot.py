@@ -134,6 +134,18 @@ async def wizard_mugshot_turnaround_large(ctx, wiz_id):
 		await ctx.send("Could not summon wizard {}".format(wiz_id))
 
 #
+# RIP
+#
+@bot.command(name="rip")
+async def wizard_rip(ctx, wiz_id):
+	logger.info("RIP %s", wiz_id)
+	wizard = WizardFactory.get_wizard(wiz_id)
+	if wizard is not None:
+		await DiscordUtils.embed_image(ctx, wizard.name.title(), wizard.rip, "{}.png".format(wiz_id), url=wizard.url)
+	else:
+		await ctx.send("Could not summon wizard {}".format(wiz_id))
+
+#
 # Listings & Sales
 #
 @bot.command(name="listings", aliases=["l", "list"])
