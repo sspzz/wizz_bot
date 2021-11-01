@@ -37,6 +37,10 @@ class Wizard(object):
         return "{}/{}.png".format(self.path, self.wiz_id)
     
     @property
+    def pfp_nobg(self):
+        return "{}/{}-nobg.png".format(self.path, self.wiz_id)
+
+    @property
     def mugshot(self):
         return "{}/{}-mugshot-pfp.png".format(self.path, self.wiz_id)
 
@@ -58,7 +62,11 @@ class Wizard(object):
 
     @property
     def rip(self):
-        return "{}/rip.png".format(self.path, self.wiz_id)
+        return "{}/{}-rip.png".format(self.path, self.wiz_id)
+
+    @property
+    def gm(self):
+        return "{}/{}-gm.png".format(self.path, self.wiz_id)
 
 class WizardFactory:
     @staticmethod
@@ -101,6 +109,10 @@ class WizardFactory:
                 pfp_original_file = "{}-{}.png".format(wizard.wiz_id, wizard.name.replace("  ", " ").replace(" ", "-").replace("'", ""))
                 pfp_original = "{}/400/{}".format(wizard.path, pfp_original_file)
                 shutil.copy(pfp_original, wizard.pfp)
+            if not os.path.isfile(wizard.pfp_nobg) or refresh:
+                pfp_original_file = "{}-{}-nobg.png".format(wizard.wiz_id, wizard.name.replace("  ", " ").replace(" ", "-").replace("'", ""))
+                pfp_original = "{}/400/{}".format(wizard.path, pfp_original_file)
+                shutil.copy(pfp_original, wizard.pfp_nobg)
 
             def gen_mugshot(target, head, body, background, overlay):            
                 fp_bg = Image.open(background)
@@ -158,11 +170,12 @@ class WizardFactory:
                     wiz_body = Image.open("{}/50/{}".format(wizard.path, filename))            
             gen_mugshot(wizard.mugshot, wiz_head, wiz_body, mugshot_rand_bg_path, mugshot_rand_frame_path)
 
-
             # Generate animated turnaround GIFs        
             turnarounds_path = "{}/50/turnarounds".format(wizard.path)
-            gen_turnaround(turnarounds_path, wizard.turnaround)
-            gen_turnaround(turnarounds_path, wizard.turnaround_large, dim=(400, 400))
+            if not os.path.isfile(wizard.turnaround) or refresh:
+                gen_turnaround(turnarounds_path, wizard.turnaround)
+            if not os.path.isfile(wizard.turnaround_large) or refresh:
+                gen_turnaround(turnarounds_path, wizard.turnaround_large, dim=(400, 400))
             gen_turnaround(turnarounds_path, wizard.turnaround_mugshot, mugshot_rand_bg_path, mugshot_rand_frame_path)
             gen_turnaround(turnarounds_path, wizard.turnaround_mugshot_large, mugshot_rand_bg_path, mugshot_rand_frame_path, (400, 400))
 
@@ -220,7 +233,7 @@ class WizardFactory:
 
                 # Bottom banner
                 font = "resources/veil/rip/alagard.ttf"
-                epitaph = "Burned, But Notte Forgotten"
+                epitaph = "Burnt, But Notte Forgotten"
                 font_size = min(find_font_size(wizard.name.title(), font, fp_final, 0.4), find_font_size(epitaph, font, fp_final, 0.4))
                 subtitle1 = text(wizard.name.title(), fp_final.size, 449, font_size, (20,15,12,200))
                 subtitle2 = text(epitaph, fp_final.size, 466, font_size, (20,15,12,200))
@@ -230,9 +243,21 @@ class WizardFactory:
                 fp_final.save(target)
 
             # Generate RIP
-            rip_bg = "{}/resources/veil/rip/bg.png".format(os.getcwd())
-            rip_fg = "{}/resources/veil/rip/fg.png".format(os.getcwd())
-            gen_rip(wizard.rip, rip_bg, rip_fg)
+            if not os.path.isfile(wizard.rip) or refresh:
+                rip_bg = "{}/resources/veil/rip/bg.png".format(os.getcwd())
+                rip_fg = "{}/resources/veil/rip/fg.png".format(os.getcwd())
+                gen_rip(wizard.rip, rip_bg, rip_fg)
+
+            # Genereate GM
+            def gen_gm():
+                img_gm = Image.open("{}/resources/gm/gm.png".format(os.getcwd()))
+                img_wiz = Image.open(wizard.pfp_nobg).resize((200, 200), Image.NEAREST)
+                img_bg = Image.new("RGB", (300, 210), (0,0,0,255))
+                img_bg.paste(img_gm, (10, 10), img_gm)
+                img_bg.paste(img_wiz, (100, 20), img_wiz)
+                img_bg.save(wizard.gm)
+            if not os.path.isfile(wizard.gm) or refresh:
+                gen_gm()
 
         except Exception as e:
             print("Error: {}".format(str(e)))

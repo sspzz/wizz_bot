@@ -5,6 +5,7 @@ import discord
 import logging
 import logging.config
 import opensea
+from functools import reduce
 
 # Utilities related to Discord
 class DiscordUtils:
@@ -134,6 +135,17 @@ async def wizard_mugshot_turnaround_large(ctx, wiz_id):
 		await ctx.send("Could not summon wizard {}".format(wiz_id))
 
 #
+# GM
+#
+@bot.command(name="gm")
+async def wizard_gm(ctx, wiz_id):
+	logger.info("GN %s", wiz_id)
+	wizard = WizardFactory.get_wizard(wiz_id)
+	if wizard is not None:
+		await DiscordUtils.embed_image(ctx, wizard.name.title(), wizard.gm, "{}.png".format(wiz_id), url=wizard.url)
+	else:
+		await ctx.send("Could not summon wizard {}".format(wiz_id))
+#
 # RIP
 #
 @bot.command(name="rip")
@@ -165,10 +177,10 @@ async def sales(ctx, num):
 	logger.info("SALES %s", num)
 	try:
 		num = int(num)
-		sales = opensea.get_sales(opensea.contract_wizards, min(20, num))
-		thumbnail = sales[0].image_url
-		fields = map(lambda l: (l.name, "[#{}]({}) sold for {} {}".format(l.token_id, l.url, l.price, l.currency)), sales)
-		await DiscordUtils.embed_fields(ctx, "Recent Sales", fields=fields, thumbnail=thumbnail, inline=False)
+		res = opensea.get_sales(opensea.contract_wizards, min(20, num))
+		thumbnail = res[0].image_url
+		fields = map(lambda l: (l.name, "[#{}]({}) sold for {} {}".format(l.token_id, l.url, l.price, l.currency)), res)
+		await DiscordUtils.embed_fields(ctx, "Recent Sales", description="Average price {}".format(avg_price), fields=fields, thumbnail=thumbnail, inline=False)
 	except Exception as e:
 		print("Error: {}".format(str(e)))
 
