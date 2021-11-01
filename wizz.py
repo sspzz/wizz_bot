@@ -243,21 +243,25 @@ class WizardFactory:
                 fp_final.save(target)
 
             # Generate RIP
-            if not os.path.isfile(wizard.rip) or refresh:
-                rip_bg = "{}/resources/veil/rip/bg.png".format(os.getcwd())
-                rip_fg = "{}/resources/veil/rip/fg.png".format(os.getcwd())
-                gen_rip(wizard.rip, rip_bg, rip_fg)
+            # if not os.path.isfile(wizard.rip) or refresh:
+            rip_bg = "{}/resources/veil/rip/bg.png".format(os.getcwd())
+            rip_fg = "{}/resources/veil/rip/fg.png".format(os.getcwd())
+            gen_rip(wizard.rip, rip_bg, rip_fg)
 
             # Genereate GM
             def gen_gm():
                 img_gm = Image.open("{}/resources/gm/gm.png".format(os.getcwd()))
                 img_wiz = Image.open(wizard.pfp_nobg).resize((200, 200), Image.NEAREST)
-                img_bg = Image.new("RGB", (300, 210), (0,0,0,255))
+                wiz_bg = next(filter(lambda f: f.startswith("background"), os.listdir("{}/50".format(wizard.path))), None)
+                if wiz_bg is not None:
+                    img_bg = Image.open("{}/50/{}".format(wizard.path, wiz_bg)).resize((305, 210))
+                else:
+                    img_bg = Image.new("RGB", (305, 210), (0,0,0,255))
                 img_bg.paste(img_gm, (10, 10), img_gm)
                 img_bg.paste(img_wiz, (100, 20), img_wiz)
                 img_bg.save(wizard.gm)
-            if not os.path.isfile(wizard.gm) or refresh:
-                gen_gm()
+            # if not os.path.isfile(wizard.gm) or refresh:
+            gen_gm()
 
         except Exception as e:
             print("Error: {}".format(str(e)))
@@ -276,7 +280,7 @@ async def interactive():
 
 async def summon_wizards(wizards):
     for wizard in wizards:
-        WizardFactory.get_wizard(wizard, refresh=False)
+        WizardFactory.get_wizard(wizard, refresh=True)
 
 async def main(argv):
     if len(argv) == 0:
