@@ -6,7 +6,6 @@ referral_address = "0x73efda13bc0d0717b4f2f36418279fd4e2cd0af9"
 contract_wizards = "0x521f9c7505005cfa19a8e5786a9c3c9c9f5e6f42"
 contract_flames = "0x31158181b4b91a423bfdc758fc3bf8735711f9c5"
 
-__use_referrrals = False
 
 class Listing(object):
 	def __init__(self, token_id, name, image_url, price, currency, date, permalink):
@@ -24,10 +23,7 @@ class Listing(object):
 
 	@property
 	def url(self):
-		if __use_referrrals:
-			return "{}?ref={}".format(self.permalink, referral_address)
-		else:
-			return self.permalink
+		return self.permalink
 
 	@staticmethod
 	def from_json(json):
@@ -47,10 +43,7 @@ class Listing(object):
 		return "{}, #{} - {}, {} {}".format(self.date_str, self.token_id, self.name, self.price, self.currency)
 
 def get_wiz_url(wiz_id):
-	if __use_referrrals:
-		return "https://opensea.io/assets/{}/{}?ref={}".format(contract_wizards, wiz_id, referral_address)
-	else:
-		return "https://opensea.io/assets/{}/{}".format(contract_wizards, wiz_id)
+	return "https://opensea.io/assets/{}/{}".format(contract_wizards, wiz_id)
 
 def get_listings(contract_address, num):
 	parameters = { 

@@ -173,13 +173,27 @@ class WizardFactory:
                     img = enhancer.enhance(0.46)
                     return img
                 
-                def text(text, dimensions, offset, font_size=24, font_color=(82,64,50,255)):
+                def find_font_size(text, font, image, target_width_ratio):
+                    def get_text_size(text, image, font):
+                        im = Image.new('RGB', (image.width, image.height))
+                        draw = ImageDraw.Draw(im)
+                        return draw.textsize(text, font)
+                    tested_font_size = 24
+                    tested_font = ImageFont.truetype(font, tested_font_size)
+                    observed_width, observed_height = get_text_size(text, image, tested_font)
+                    estimated_font_size = tested_font_size / (observed_width / image.width) * target_width_ratio
+                    return round(estimated_font_size)
+
+                def text(text, dimensions, y_pos, font_size=24, font_color=(82,64,50,255)):
                     fnt = ImageFont.truetype("resources/veil/rip/alagard.ttf", font_size)
                     txt = Image.new("RGBA", dimensions, (255,255,255,0))
                     d = ImageDraw.Draw(txt)
-                    d.text(offset, text, font=fnt, fill=font_color)
+                    w, h = d.textsize(text)
+                    d.text((dimensions[0]/2, y_pos), text, font=fnt, fill=font_color, anchor="mm")
                     return txt
 
+
+                # Build image with wizard head, body, prop
                 fp_bg = Image.open(background)
                 fp_frame = Image.open(overlay)
                 wiz_head = None # Damn you headless wizard, this is for you
@@ -199,13 +213,26 @@ class WizardFactory:
                     fp_bg.paste(wiz_head, offset, wiz_head)
                 fp_bg.paste(fp_frame, (0, 0), fp_frame)
                 fp_final = fp_bg.resize(size, Image.NEAREST)
-                title = text("Rest In Peace", fp_final.size, (192, 49))
+                
+                # Top banner
+                title = text(" Rest In Peace", fp_final.size, 62)
                 fp_final.paste(title, (0,0), title)
-                subtitle = text("Burned, But Notte Forgotten", fp_final.size, (158, 450), 16, (20,15,12,140))
-                fp_final.paste(subtitle, (0,0), subtitle)
+
+                # Bottom banner
+                font = "resources/veil/rip/alagard.ttf"
+                epitaph = "Burned, But Notte Forgotten"
+                font_size = min(find_font_size(wizard.name.title(), font, fp_final, 0.4), find_font_size(epitaph, font, fp_final, 0.4))
+                subtitle1 = text(wizard.name.title(), fp_final.size, 449, font_size, (20,15,12,200))
+                subtitle2 = text(epitaph, fp_final.size, 466, font_size, (20,15,12,200))
+                fp_final.paste(subtitle1, (0,0), subtitle1)
+                fp_final.paste(subtitle2, (0,0), subtitle2)                
+
                 fp_final.save(target)
 
-            gen_rip(wizard.rip, "{}/resources/veil/rip/bg.png".format(os.getcwd()), "{}/resources/veil/rip/fg.png".format(os.getcwd()))
+            # Generate RIP
+            rip_bg = "{}/resources/veil/rip/bg.png".format(os.getcwd())
+            rip_fg = "{}/resources/veil/rip/fg.png".format(os.getcwd())
+            gen_rip(wizard.rip, rip_bg, rip_fg)
 
         except Exception as e:
             print("Error: {}".format(str(e)))

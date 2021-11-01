@@ -182,7 +182,7 @@ async def flame(ctx):
 	filename = "sacred_flame.gif"
 	file = "./resources/veil/{}".format(filename)
 	title = "Sacred Flame"
-	description = """On All Hallows Eve, 2021 the Great Burning will be held at The Secret Tower.
+	description = """On All Hallows Eve, 2021 the Great Burning began at The Secret Tower.
 	
 At this event, a Wizard and a Flame may be burned to receive a Forgotten Soul.
 
