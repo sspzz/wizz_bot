@@ -174,17 +174,42 @@ async def listings(ctx, num):
 	except Exception as e:
 		print("Error: {}".format(str(e)))
 
+@bot.command(name="soulistings", aliases=["sl", "slist"])
+async def listings(ctx, num):
+	logger.info("LISTINGS %s", num)
+	try:
+		num = int(num)
+		listings = opensea.get_listings(opensea.contract_souls, min(20, num))
+		thumbnail = listings[0].image_url
+		fields = map(lambda l: (l.name, "[#{}]({}) listed for {} {}".format(l.token_id, l.url, l.price, l.currency)), listings)
+		await DiscordUtils.embed_fields(ctx, "Recent Listings", fields=fields, thumbnail=thumbnail, inline=False)
+	except Exception as e:
+		print("Error: {}".format(str(e)))
+
 @bot.command(name="sales", aliases=["s"])
 async def sales(ctx, num):
 	logger.info("SALES %s", num)
-	# try:
-	num = int(num)
-	res = opensea.get_sales(opensea.contract_wizards, min(20, num))
-	thumbnail = res[0].image_url
-	fields = map(lambda l: (l.name, "[#{}]({}) sold for {} {}".format(l.token_id, l.url, l.price, l.currency)), res)
-	await DiscordUtils.embed_fields(ctx, "Recent Sales", fields=fields, thumbnail=thumbnail, inline=False)
-	# except Exception as e:
-	# 	print("Error: {}".format(str(e)))
+	try:
+		num = int(num)
+		res = opensea.get_sales(opensea.contract_wizards, min(20, num))
+		thumbnail = res[0].image_url
+		fields = map(lambda l: (l.name, "[#{}]({}) sold for {} {}".format(l.token_id, l.url, l.price, l.currency)), res)
+		await DiscordUtils.embed_fields(ctx, "Recent Sales", fields=fields, thumbnail=thumbnail, inline=False)
+	except Exception as e:
+		print("Error: {}".format(str(e)))
+
+@bot.command(name="soulsales", aliases=["ssales", "ss"])
+async def soul_sales(ctx, num):
+	logger.info("SSALES %s", num)
+	try:
+		num = int(num)
+		res = opensea.get_sales(opensea.contract_souls, min(20, num))
+		thumbnail = res[0].image_url
+		fields = map(lambda l: (l.name, "[#{}]({}) sold for {} {}".format(l.token_id, l.url, l.price, l.currency)), res)
+		await DiscordUtils.embed_fields(ctx, "Recent Sales", fields=fields, thumbnail=thumbnail, inline=False)
+	except Exception as e:
+		print("Error: {}".format(str(e)))
+
 
 #
 # Sacred Flame
