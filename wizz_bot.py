@@ -32,12 +32,14 @@ class DiscordUtils:
 		await ctx.send(file=file, embed=embed)
 
 	@staticmethod
-	async def embed_fields(ctx, title, fields, inline=True, thumbnail=None):
+	async def embed_fields(ctx, title, fields, inline=True, thumbnail=None, url=None):
 		embed = discord.Embed(title=title)
 		if thumbnail is not None:
 			embed.set_thumbnail(url=thumbnail)
 		for field in fields:
 			embed.add_field(name=field[0], value=field[1], inline=inline)
+		if url is not None:
+			embed.url = url
 		await ctx.send(embed=embed)
 
 
@@ -139,7 +141,7 @@ async def wizard_mugshot_turnaround_large(ctx, wiz_id):
 #
 @bot.command(name="gm")
 async def wizard_gm(ctx, wiz_id):
-	logger.info("GN %s", wiz_id)
+	logger.info("GM %s", wiz_id)
 	wizard = WizardFactory.get_wizard(wiz_id)
 	if wizard is not None:
 		await DiscordUtils.embed_image(ctx, wizard.name.title(), wizard.gm, "{}.png".format(wiz_id), url=wizard.url)
@@ -175,14 +177,14 @@ async def listings(ctx, num):
 @bot.command(name="sales", aliases=["s"])
 async def sales(ctx, num):
 	logger.info("SALES %s", num)
-	try:
-		num = int(num)
-		res = opensea.get_sales(opensea.contract_wizards, min(20, num))
-		thumbnail = res[0].image_url
-		fields = map(lambda l: (l.name, "[#{}]({}) sold for {} {}".format(l.token_id, l.url, l.price, l.currency)), res)
-		await DiscordUtils.embed_fields(ctx, "Recent Sales", description="Average price {}".format(avg_price), fields=fields, thumbnail=thumbnail, inline=False)
-	except Exception as e:
-		print("Error: {}".format(str(e)))
+	# try:
+	num = int(num)
+	res = opensea.get_sales(opensea.contract_wizards, min(20, num))
+	thumbnail = res[0].image_url
+	fields = map(lambda l: (l.name, "[#{}]({}) sold for {} {}".format(l.token_id, l.url, l.price, l.currency)), res)
+	await DiscordUtils.embed_fields(ctx, "Recent Sales", fields=fields, thumbnail=thumbnail, inline=False)
+	# except Exception as e:
+	# 	print("Error: {}".format(str(e)))
 
 #
 # Sacred Flame
@@ -196,7 +198,7 @@ async def flame(ctx):
 	title = "Sacred Flame"
 	description = """On All Hallows Eve, 2021 the Great Burning began at The Secret Tower.
 	
-At this event, a Wizard and a Flame may be burned to receive a Forgotten Soul.
+A Wizard and a Flame may be burned to receive a Forgotten Soul.
 
 Burning a Wizard, however, is Dark Magic which is always risky and unpredictable. If you choose to burn a Wizard, there's a chance you may receive something undesirable.
 
@@ -205,6 +207,58 @@ So choose wisely.
 [Read more about The Great Burning](https://www.forgottenrunes.com/posts/forgotten-souls)"""
 	floor = "Last price: {} {}".format(listing.price, listing.currency)
 	await DiscordUtils.embed_image(ctx, title, file, filename, description=description, footer=floor, url=listing.url)
+
+
+#
+# Recurring tasks, like checking sales
+#
+from discord.ext import tasks
+import datetime
+import calendar
+
+@tasks.loop(seconds=60)
+async def check_soul_sales():
+	# sales 863044365299220511
+	# live-burn-chat 903730142155788388
+	# wiz-bots 896204060405940245
+	# wenmoon 437876896664125443
+	sales_channels = [437876896664125443, 896204060405940245, 903730142155788388]
+
+	try:
+		prev_latest_sale = float(next(open('latest_sale_souls.txt', 'r')))
+		res = opensea.get_sales(opensea.contract_souls, 10, after=prev_latest_sale)
+		if res is not None:
+			for sale in res:
+				for channel in sales_channels:
+					title = "New Sale: {}".format(sale.name)
+					description = sale.date.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+					fields = []
+					fields.append(("Amount", "{} {}".format(sale.price, sale.currency)))
+					if sale.seller is not None:
+						fields.append(("Seller", "[{}]({}) ({})".format(sale.seller.wallet[0:8], sale.seller.opensea_profile, sale.seller.name)))
+					if sale.buyer is not None:
+						fields.append(("Buyer", "[{}]({}) ({})".format(sale.buyer.wallet[0:8], sale.buyer.opensea_profile, sale.buyer.name)))
+					await DiscordUtils.embed_fields(bot.get_channel(channel), title, fields=fields, thumbnail=sale.image_url, inline=False, url=sale.permalink)
+			new_latest_sale = calendar.timegm(res[0].date.timetuple())+1
+	except:
+		# First time we run, get the latest sale and store timestamp
+		res = opensea.get_sales(opensea.contract_souls, 1)		
+		new_latest_sale = calendar.timegm(res[0].date.timetuple())+1
+
+	try:
+		out = str(new_latest_sale)
+		ts_file = open('latest_sale_souls.txt', 'w')
+		ts_file.write(out)
+		ts_file.close()
+	except:
+		pass
+
+
+@check_soul_sales.before_loop
+async def check_soul_sales_before():
+    await bot.wait_until_ready()
+
+check_soul_sales.start()
 
 
 #
