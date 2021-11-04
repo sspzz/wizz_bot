@@ -85,23 +85,33 @@ async def wizard_profile(ctx, wiz_id):
 #
 # Animated turnaround
 #
-@bot.command(name="gif", aliases=["wg", "wizgif"])
-async def wizard_turnaround(ctx, wiz_id):
+async def turnaround(ctx, wiz_id, large, transparent):
 	logger.info("TURNAROUND %s", wiz_id)
 	wizard = WizardFactory.get_wizard(wiz_id)
+	if large:
+		file = wizard.turnaround_large if not transparent else wizard.turnaround_large_nobg
+	else:
+		file = wizard.turnaround if not transparent else wizard.turnaround_nobg
 	if wizard is not None:
-		await DiscordUtils.embed_image(ctx, wizard.name.title(), wizard.turnaround, "{}.gif".format(wiz_id), url=wizard.url)
+		await DiscordUtils.embed_image(ctx, wizard.name.title(), file, "{}.gif".format(wiz_id), url=wizard.url)
 	else:
 		await ctx.send("Could not summon wizard {}".format(wiz_id))
 
+@bot.command(name="gif", aliases=["wg", "wizgif"])
+async def wizard_turnaround(ctx, wiz_id):
+	await turnaround(ctx, wiz_id, False, False)
+
 @bot.command(name="gifbig", aliases=["wgb", "wizgifbig"])
 async def wizard_turnaround_large(ctx, wiz_id):
-	logger.info("TURNAROUND %s", wiz_id)
-	wizard = WizardFactory.get_wizard(wiz_id)
-	if wizard is not None:
-		await DiscordUtils.embed_image(ctx, wizard.name.title(), wizard.turnaround_large, "{}.gif".format(wiz_id), url=wizard.url)
-	else:
-		await ctx.send("Could not summon wizard {}".format(wiz_id))
+	await turnaround(ctx, wiz_id, True, False)
+
+@bot.command(name="tgif", aliases=["twg", "twizgif"])
+async def wizard_turnaround_nobg(ctx, wiz_id):
+	await turnaround(ctx, wiz_id, False, True)
+
+@bot.command(name="tgifbig", aliases=["twgb", "twizgifbig"])
+async def wizard_turnaround_large_nobg(ctx, wiz_id):
+	await turnaround(ctx, wiz_id, True, True)
 
 #
 # Mugshot

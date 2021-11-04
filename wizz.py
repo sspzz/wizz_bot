@@ -53,6 +53,14 @@ class Wizard(object):
         return "{}/{}.gif".format(self.path, self.wiz_id)
 
     @property
+    def turnaround_nobg(self):
+        return "{}/{}-nobg-s.gif".format(self.path, self.wiz_id)
+
+    @property
+    def turnaround_large_nobg(self):
+        return "{}/{}-nobg.gif".format(self.path, self.wiz_id)
+
+    @property
     def turnaround_mugshot(self):
         return "{}/{}-mugshot-s.gif".format(self.path, self.wiz_id)
 
@@ -67,6 +75,7 @@ class Wizard(object):
     @property
     def gm(self):
         return "{}/{}-gm.png".format(self.path, self.wiz_id)
+
 
 class WizardFactory:
     @staticmethod
@@ -130,7 +139,7 @@ class WizardFactory:
                 fp_final = fp_bg.resize((200, 200), Image.NEAREST)
                 fp_final.save(target)
 
-            def gen_turnaround(frames, target, background=None, overlay=None, dim=(100, 100)):
+            def gen_turnaround(frames, target, background=None, overlay=None, dim=(100, 100), transparent=False):
                 images = []
                 icc = None
                 for filename in sorted(os.listdir(frames)):
@@ -142,19 +151,14 @@ class WizardFactory:
                         bg = image
                     if overlay is not None:
                         fg = Image.open(overlay).convert('RGBA', dither=None)
-                        icc = fg.info.get('icc_profile')
                         bg.paste(fg, (0, 0), fg)
                     final_image = bg if not None else image
                     final_image = final_image.resize(dim, Image.NEAREST)
                     images.append(final_image)
-                images[0].save(target, 
-                                save_all=True, 
-                                append_images=images[1:], 
-                                optimize=False, 
-                                quality=100, 
-                                duration=600, 
-                                loop=0,
-                                icc_profile=icc)
+                if transparent:
+                    images[0].save(target, save_all=True, append_images=images[1:], optimize=False, quality=100, duration=600, loop=0, transparency=255, disposal=2)
+                else:
+                    images[0].save(target, save_all=True, append_images=images[1:], optimize=False, quality=100, duration=600, loop=0)
 
             # Random mugshot background and frame
             mugshot_rand_bg_path = "{}/resources/mugshot/bg/{}".format(os.getcwd(), random.choice(os.listdir("resources/mugshot/bg")))
@@ -172,10 +176,10 @@ class WizardFactory:
 
             # Generate animated turnaround GIFs        
             turnarounds_path = "{}/50/turnarounds".format(wizard.path)
-            if not os.path.isfile(wizard.turnaround) or refresh:
-                gen_turnaround(turnarounds_path, wizard.turnaround)
-            if not os.path.isfile(wizard.turnaround_large) or refresh:
-                gen_turnaround(turnarounds_path, wizard.turnaround_large, dim=(400, 400))
+            gen_turnaround(turnarounds_path, wizard.turnaround)
+            gen_turnaround(turnarounds_path, wizard.turnaround_nobg, transparent=True)
+            gen_turnaround(turnarounds_path, wizard.turnaround_large, dim=(400, 400))
+            gen_turnaround(turnarounds_path, wizard.turnaround_large_nobg, dim=(400, 400), transparent=True)
             gen_turnaround(turnarounds_path, wizard.turnaround_mugshot, mugshot_rand_bg_path, mugshot_rand_frame_path)
             gen_turnaround(turnarounds_path, wizard.turnaround_mugshot_large, mugshot_rand_bg_path, mugshot_rand_frame_path, (400, 400))
 
