@@ -293,7 +293,8 @@ async def check_soul_sales():
 async def check_soul_sales_before():
     await bot.wait_until_ready()
 
-check_soul_sales.start()
+# No need, RuneBot now supports Soul sales :)
+# check_soul_sales.start()
 
 
 #
