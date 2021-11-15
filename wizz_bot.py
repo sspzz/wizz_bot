@@ -114,6 +114,37 @@ async def wizard_turnaround_large_nobg(ctx, wiz_id):
 	await turnaround(ctx, wiz_id, True, True)
 
 #
+# Animated walk cycles
+#
+async def walkcycle(ctx, wiz_id, large, transparent):
+	logger.info("WALKCYCLE %s", wiz_id)
+	wizard = WizardFactory.get_wizard(wiz_id)
+	if large:
+		file = wizard.walkcycle_large if not transparent else wizard.walkcycle_large_nobg
+	else:
+		file = wizard.walkcycle if not transparent else wizard.walkcycle_nobg
+	if wizard is not None:
+		await DiscordUtils.embed_image(ctx, wizard.name.title(), file, "{}.gif".format(wiz_id), url=wizard.url)
+	else:
+		await ctx.send("Could not summon wizard {}".format(wiz_id))
+
+@bot.command(name="walk", aliases=["wc", "walkcycle"])
+async def wizard_walkcycle(ctx, wiz_id):
+	await walkcycle(ctx, wiz_id, False, False)
+
+@bot.command(name="walkbig", aliases=["wcb", "walkcyclebig"])
+async def wizard_walkcycle_large(ctx, wiz_id):
+	await walkcycle(ctx, wiz_id, True, False)
+
+@bot.command(name="twalk", aliases=["twc", "twalkcycle"])
+async def wizard_walkcycle_nobg(ctx, wiz_id):
+	await walkcycle(ctx, wiz_id, False, True)
+
+@bot.command(name="twalkbig", aliases=["twcb", "twalkcyclebig"])
+async def wizard_walkcycle_large_nobg(ctx, wiz_id):
+	await walkcycle(ctx, wiz_id, True, True)
+
+#
 # Mugshot
 #
 @bot.command(name="mugshot", aliases=["mug"])
