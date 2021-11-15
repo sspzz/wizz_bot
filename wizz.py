@@ -117,85 +117,85 @@ class WizardFactory:
 
         wizard = Wizard(wiz_id, path_artwork)
 
-        # try:
-        def download_content():
-            # Check cache if we don't want to force download
-            if not refresh:
-                cached_wizards = os.listdir(path_artwork)
-                cached_wizard_path = None
-                for wiz_dir in cached_wizards:
-                    if wiz_dir == wiz_id:
-                        cached_wizard_path = wizard.path
-            else:
-                cached_wizard_path = None
+        try:
+            def download_content():
+                # Check cache if we don't want to force download
+                if not refresh:
+                    cached_wizards = os.listdir(path_artwork)
+                    cached_wizard_path = None
+                    for wiz_dir in cached_wizards:
+                        if wiz_dir == wiz_id:
+                            cached_wizard_path = wizard.path
+                else:
+                    cached_wizard_path = None
 
-            # Download artwork
-            if cached_wizard_path is None:
-                zip_file = "{}/{}.zip".format(path_artwork, wiz_id)
-                endpoint_wizard_artwork = 'https://www.forgottenrunes.com/api/art/wizards/{}.zip'
-                urllib.request.urlretrieve(endpoint_wizard_artwork.format(wiz_id), zip_file)
-                zip_ref = zipfile.ZipFile(zip_file, 'r')
-                zip_ref.extractall(wizard.path)
-                os.remove(zip_file)    
+                # Download artwork
+                if cached_wizard_path is None:
+                    zip_file = "{}/{}.zip".format(path_artwork, wiz_id)
+                    endpoint_wizard_artwork = 'https://www.forgottenrunes.com/api/art/wizards/{}.zip'
+                    urllib.request.urlretrieve(endpoint_wizard_artwork.format(wiz_id), zip_file)
+                    zip_ref = zipfile.ZipFile(zip_file, 'r')
+                    zip_ref.extractall(wizard.path)
+                    os.remove(zip_file)    
 
-            # Extract main artwork, if not cached
-            if not os.path.isfile(wizard.pfp) or refresh:
-                pfp_original_file = "{}-{}.png".format(wizard.wiz_id, wizard.name.replace("  ", " ").replace(" ", "-").replace("'", ""))
-                pfp_original = "{}/400/{}".format(wizard.path, pfp_original_file)
-                shutil.copy(pfp_original, wizard.pfp)
-            if not os.path.isfile(wizard.pfp_nobg) or refresh:
-                pfp_original_file = "{}-{}-nobg.png".format(wizard.wiz_id, wizard.name.replace("  ", " ").replace(" ", "-").replace("'", ""))
-                pfp_original = "{}/400/{}".format(wizard.path, pfp_original_file)
-                shutil.copy(pfp_original, wizard.pfp_nobg)                
+                # Extract main artwork, if not cached
+                if not os.path.isfile(wizard.pfp) or refresh:
+                    pfp_original_file = "{}-{}.png".format(wizard.wiz_id, wizard.name.replace("  ", " ").replace(" ", "-").replace("'", ""))
+                    pfp_original = "{}/400/{}".format(wizard.path, pfp_original_file)
+                    shutil.copy(pfp_original, wizard.pfp)
+                if not os.path.isfile(wizard.pfp_nobg) or refresh:
+                    pfp_original_file = "{}-{}-nobg.png".format(wizard.wiz_id, wizard.name.replace("  ", " ").replace(" ", "-").replace("'", ""))
+                    pfp_original = "{}/400/{}".format(wizard.path, pfp_original_file)
+                    shutil.copy(pfp_original, wizard.pfp_nobg)                
 
-            # Download spritesheet
-            if cached_wizard_path is None or not os.path.isdir(wizard.sprites):
-                try:
-                    os.makedirs(wizard.sprites)
-                except:
-                    pass
-                urllib.request.urlretrieve("https://www.forgottenrunes.com/api/art/wizards/{}/spritesheet.png".format(wiz_id), wizard.spritesheet)        
-                sprite_tiles = imagetools.tile(Image.open(wizard.spritesheet), 4)
-                for i, sprite in enumerate(sprite_tiles):
-                    sprite.save("{}/{}.png".format(wizard.sprites, 100+i))
+                # Download spritesheet
+                if cached_wizard_path is None or not os.path.isdir(wizard.sprites):
+                    try:
+                        os.makedirs(wizard.sprites)
+                    except:
+                        pass
+                    urllib.request.urlretrieve("https://www.forgottenrunes.com/api/art/wizards/{}/spritesheet.png".format(wiz_id), wizard.spritesheet)        
+                    sprite_tiles = imagetools.tile(Image.open(wizard.spritesheet), 4)
+                    for i, sprite in enumerate(sprite_tiles):
+                        sprite.save("{}/{}.png".format(wizard.sprites, 100+i))
 
-        # Fetch artwork etc
-        download_content()
+            # Fetch artwork etc
+            download_content()
 
-        # Random mugshot background and frame
-        mugshot_rand_bg_path = "{}/resources/mugshot/bg/{}".format(os.getcwd(), random.choice(os.listdir("resources/mugshot/bg")))
-        mugshot_rand_frame_path = "{}/resources/mugshot/frame/{}".format(os.getcwd(), random.choice(os.listdir("resources/mugshot/frame")))
+            # Random mugshot background and frame
+            mugshot_rand_bg_path = "{}/resources/mugshot/bg/{}".format(os.getcwd(), random.choice(os.listdir("resources/mugshot/bg")))
+            mugshot_rand_frame_path = "{}/resources/mugshot/frame/{}".format(os.getcwd(), random.choice(os.listdir("resources/mugshot/frame")))
 
-        # Generate "framed profile", aka. mugshot           
-        imagetools.mugshot(wizard, mugshot_rand_bg_path, mugshot_rand_frame_path)
+            # Generate "framed profile", aka. mugshot           
+            imagetools.mugshot(wizard, mugshot_rand_bg_path, mugshot_rand_frame_path)
 
-        # Generate animated turnaround GIFs        
-        turnarounds_path = "{}/50/turnarounds".format(wizard.path)
-        imagetools.gif(turnarounds_path, wizard.turnaround)
-        imagetools.gif(turnarounds_path, wizard.turnaround_nobg, transparent=True)
-        imagetools.gif(turnarounds_path, wizard.turnaround_large, dim=(400, 400))
-        imagetools.gif(turnarounds_path, wizard.turnaround_large_nobg, dim=(400, 400), transparent=True)
-        imagetools.gif(turnarounds_path, wizard.turnaround_mugshot, mugshot_rand_bg_path, mugshot_rand_frame_path)
-        imagetools.gif(turnarounds_path, wizard.turnaround_mugshot_large, mugshot_rand_bg_path, mugshot_rand_frame_path, (400, 400))
+            # Generate animated turnaround GIFs        
+            turnarounds_path = "{}/50/turnarounds".format(wizard.path)
+            imagetools.gif(turnarounds_path, wizard.turnaround)
+            imagetools.gif(turnarounds_path, wizard.turnaround_nobg, transparent=True)
+            imagetools.gif(turnarounds_path, wizard.turnaround_large, dim=(400, 400))
+            imagetools.gif(turnarounds_path, wizard.turnaround_large_nobg, dim=(400, 400), transparent=True)
+            imagetools.gif(turnarounds_path, wizard.turnaround_mugshot, mugshot_rand_bg_path, mugshot_rand_frame_path)
+            imagetools.gif(turnarounds_path, wizard.turnaround_mugshot_large, mugshot_rand_bg_path, mugshot_rand_frame_path, (400, 400))
 
-        # Animated walk cycles
-        imagetools.gif(wizard.sprites, wizard.walkcycle, duration=150)
-        imagetools.gif(wizard.sprites, wizard.walkcycle_nobg, duration=150, transparent=True)
-        imagetools.gif(wizard.sprites, wizard.walkcycle_large, duration=150, dim=(400, 400))
-        imagetools.gif(wizard.sprites, wizard.walkcycle_large_nobg, duration=150, dim=(400, 400), transparent=True)
+            # Animated walk cycles
+            imagetools.gif(wizard.sprites, wizard.walkcycle, duration=150)
+            imagetools.gif(wizard.sprites, wizard.walkcycle_nobg, duration=150, transparent=True)
+            imagetools.gif(wizard.sprites, wizard.walkcycle_large, duration=150, dim=(400, 400))
+            imagetools.gif(wizard.sprites, wizard.walkcycle_large_nobg, duration=150, dim=(400, 400), transparent=True)
 
-        # Generate RIP
-        rip_bg = "{}/resources/veil/rip/bg.png".format(os.getcwd())
-        rip_fg = "{}/resources/veil/rip/fg.png".format(os.getcwd())
-        imagetools.rip(wizard, rip_bg, rip_fg)
+            # Generate RIP
+            rip_bg = "{}/resources/veil/rip/bg.png".format(os.getcwd())
+            rip_fg = "{}/resources/veil/rip/fg.png".format(os.getcwd())
+            imagetools.rip(wizard, rip_bg, rip_fg)
 
-        # Genereate GM
-        imagetools.gm(wizard)
+            # Genereate GM
+            imagetools.gm(wizard)
 
 
-        # except Exception as e:
-        #     print("Error: {}".format(str(e)))
-        #     return None
+        except Exception as e:
+            print("Error: {}".format(str(e)))
+            return None
 
         return wizard
 
