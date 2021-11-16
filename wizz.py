@@ -185,16 +185,13 @@ class WizardFactory:
             imagetools.gif(wizard.sprites, wizard.walkcycle_large_nobg, duration=150, dim=(400, 400), transparent=True)
 
             # Generate RIP
-            rip_bg = "{}/resources/veil/rip/bg.png".format(os.getcwd())
-            rip_fg = "{}/resources/veil/rip/fg.png".format(os.getcwd())
-            imagetools.rip(wizard, rip_bg, rip_fg)
+            imagetools.rip(wizard)
 
             # Genereate GM
             imagetools.gm(wizard)
 
-
         except Exception as e:
-            print("Error: {}".format(str(e)))
+            print("Error summoing {}: {}".format(wiz_id, str(e)))
             return None
 
         return wizard
@@ -216,7 +213,11 @@ async def main(argv):
     if len(argv) == 0:
         await interactive()
     else:
-        await summon_wizards(argv)
+        if argv[0] == "--all":
+            all_wizzes = map(lambda i: str(i), range(0, 10000))
+            await summon_wizards(all_wizzes)
+        else:
+            await summon_wizards(argv)
             
 
 if __name__ == "__main__":

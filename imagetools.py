@@ -57,6 +57,18 @@ def gif(frames, target, background=None, overlay=None, dim=(100, 100), transpare
     else:
         images[0].save(target, save_all=True, append_images=images[1:], optimize=False, quality=100, duration=duration, loop=0)
 
+def overlay(target, layers, scale=1):
+	prev = None
+	for layer, offset in layers:
+		img = Image.open(layer)
+		if prev is not None:
+			prev.paste(img, offset, img)
+		else:
+			size = (img.size[0]*scale, img.size[1]*scale)
+			prev = img
+	final = prev.resize(size, Image.NEAREST)
+	final.save(target)
+
 def mugshot(wizard, background, overlay): 
     head = None
     body = None
@@ -86,11 +98,15 @@ def gm(wizard):
     img_bg.paste(img_wiz, (100, 20), img_wiz)
     img_bg.save(wizard.gm)
 
-def rip(wizard, background, overlay, size=(520, 520), offset=(42, 34)):
+def rip(wizard, size=(520, 520), offset=(42, 34)):
+    background = "{}/resources/veil/rip/bg.png".format(os.getcwd())
+    overlay = "{}/resources/veil/rip/fg.png".format(os.getcwd())
+
     # Build image with wizard head, body, prop
     fp_bg = Image.open(background)
     fp_frame = Image.open(overlay)
     wiz_head = None # Damn you headless wizard, this is for you
+    wiz_prop = None
     for filename in sorted(os.listdir("{}/50".format(wizard.path))):
         if filename.startswith("head"):
             wiz_head = Image.open("{}/50/{}".format(wizard.path, filename))
@@ -102,7 +118,8 @@ def rip(wizard, background, overlay, size=(520, 520), offset=(42, 34)):
             wiz_prop = Image.open("{}/50/{}".format(wizard.path, filename))            
             wiz_prop = desaturate(wiz_prop)
     fp_bg.paste(wiz_body, offset, wiz_body)
-    fp_bg.paste(wiz_prop, offset, wiz_prop)
+    if wiz_prop is not None:
+    	fp_bg.paste(wiz_prop, offset, wiz_prop)
     if wiz_head is not None:
         fp_bg.paste(wiz_head, offset, wiz_head)
     fp_bg.paste(fp_frame, (0, 0), fp_frame)
