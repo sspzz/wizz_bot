@@ -5,6 +5,7 @@ import discord
 import logging
 import logging.config
 import opensea
+from random import randrange
 from functools import reduce
 
 # Utilities related to Discord
@@ -82,36 +83,23 @@ async def wizard_profile(ctx, wiz_id):
 	else:
 		await ctx.send("Could not summon wizard {}".format(wiz_id))
 
+
 #
-# Animated turnaround
+# Ho ho ho!
 #
-async def turnaround(ctx, wiz_id, large, transparent):
-	logger.info("TURNAROUND %s", wiz_id)
+@bot.command(name="mount", aliases=["pony"])
+async def wizmas(ctx, wiz_id, pony_id=None):
+	logger.info("WIZMAS %s %s", wiz_id, pony_id)
 	wizard = WizardFactory.get_wizard(wiz_id)
-	if large:
-		file = wizard.turnaround_large if not transparent else wizard.turnaround_large_nobg
-	else:
-		file = wizard.turnaround if not transparent else wizard.turnaround_nobg
 	if wizard is not None:
-		await DiscordUtils.embed_image(ctx, wizard.name.title(), file, "{}.gif".format(wiz_id), url=wizard.url)
+		if pony_id is None:
+			pony_id = randrange(0, 567)
+		if wizard.get_pony(pony_id):
+			await DiscordUtils.embed_image(ctx, wizard.name.title(), wizard.pony, "{}.png".format(wiz_id))
+		else:
+			await ctx.send("Could not mount wizard {} to pony {}".format(wiz_id, pony_id))
 	else:
 		await ctx.send("Could not summon wizard {}".format(wiz_id))
-
-@bot.command(name="gif", aliases=["wg", "wizgif"])
-async def wizard_turnaround(ctx, wiz_id):
-	await turnaround(ctx, wiz_id, False, False)
-
-@bot.command(name="gifbig", aliases=["wgb", "wizgifbig"])
-async def wizard_turnaround_large(ctx, wiz_id):
-	await turnaround(ctx, wiz_id, True, False)
-
-@bot.command(name="tgif", aliases=["twg", "twizgif"])
-async def wizard_turnaround_nobg(ctx, wiz_id):
-	await turnaround(ctx, wiz_id, False, True)
-
-@bot.command(name="tgifbig", aliases=["twgb", "twizgifbig"])
-async def wizard_turnaround_large_nobg(ctx, wiz_id):
-	await turnaround(ctx, wiz_id, True, True)
 
 #
 # Animated walk cycles
@@ -128,19 +116,19 @@ async def walkcycle(ctx, wiz_id, large, transparent):
 	else:
 		await ctx.send("Could not summon wizard {}".format(wiz_id))
 
-@bot.command(name="walk", aliases=["wc", "walkcycle"])
+@bot.command(name="walk", aliases=["wc", "gif"])
 async def wizard_walkcycle(ctx, wiz_id):
 	await walkcycle(ctx, wiz_id, False, False)
 
-@bot.command(name="walkbig", aliases=["wcb", "walkcyclebig"])
+@bot.command(name="walkbig", aliases=["wcb", "gifbig"])
 async def wizard_walkcycle_large(ctx, wiz_id):
 	await walkcycle(ctx, wiz_id, True, False)
 
-@bot.command(name="twalk", aliases=["twc", "twalkcycle"])
+@bot.command(name="twalk", aliases=["twc", "tgif"])
 async def wizard_walkcycle_nobg(ctx, wiz_id):
 	await walkcycle(ctx, wiz_id, False, True)
 
-@bot.command(name="twalkbig", aliases=["twcb", "twalkcyclebig"])
+@bot.command(name="twalkbig", aliases=["twcb", "tgifbig"])
 async def wizard_walkcycle_large_nobg(ctx, wiz_id):
 	await walkcycle(ctx, wiz_id, True, True)
 
@@ -156,26 +144,6 @@ async def wizard_mugshot(ctx, wiz_id):
 	else:
 		await ctx.send("Could not summon wizard {}".format(wiz_id))
 
-#
-# Animated mugshot
-#
-@bot.command(name="gifmug", aliases=["mugturn", "mgif"])
-async def wizard_mugshot_turnaround(ctx, wiz_id):
-	logger.info("MUGSHOT TURNAROUND %s", wiz_id)
-	wizard = WizardFactory.get_wizard(wiz_id)
-	if wizard is not None:
-		await DiscordUtils.embed_image(ctx, wizard.name.title(), wizard.turnaround_mugshot, "{}.gif".format(wiz_id), url=wizard.url)
-	else:
-		await ctx.send("Could not summon wizard {}".format(wiz_id))
-
-@bot.command(name="gifmugbig", aliases=["mugturnbig", "mgifbig"])
-async def wizard_mugshot_turnaround_large(ctx, wiz_id):
-	logger.info("MUGSHOT TURNAROUND %s", wiz_id)
-	wizard = WizardFactory.get_wizard(wiz_id)
-	if wizard is not None:
-		await DiscordUtils.embed_image(ctx, wizard.name.title(), wizard.turnaround_mugshot_large, "{}.gif".format(wiz_id), url=wizard.url)
-	else:
-		await ctx.send("Could not summon wizard {}".format(wiz_id))
 
 #
 # GM
@@ -188,6 +156,7 @@ async def wizard_gm(ctx, wiz_id):
 		await DiscordUtils.embed_image(ctx, wizard.name.title(), wizard.gm, "{}.png".format(wiz_id), url=wizard.url)
 	else:
 		await ctx.send("Could not summon wizard {}".format(wiz_id))
+
 #
 # RIP
 #
