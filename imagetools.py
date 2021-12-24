@@ -146,7 +146,7 @@ def rip(wizard, size=(520, 520), offset=(42, 34)):
     fp_final.save(wizard.rip)
 
 def walkcycles(wizard):
-    sprites_path = "{}/50/spritesheet/frames".format(wizard.path)
+    sprites_path = "{}/sprites".format(wizard.path)
     gif(sprites_path, wizard.walkcycle, duration=150)
     gif(sprites_path, wizard.walkcycle_nobg, duration=150, transparent=True)
     gif(sprites_path, wizard.walkcycle_large, duration=150, dim=(400, 400))

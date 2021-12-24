@@ -18,7 +18,7 @@ class Wizard(object):
 
     def get_pony(self, pony_id):
         try:
-            endpoint = "https://www.forgottenrunes.com/api/art/wizards/0/riding/pony/0".format(self.wiz_id, pony_id)
+            endpoint = "https://www.forgottenrunes.com/api/art/wizards/{}/riding/pony/{}".format(self.wiz_id, pony_id)
             urllib.request.urlretrieve(endpoint, self.pony)
             return True
         except:
