@@ -40,8 +40,8 @@ def text(text, dimensions, y_pos, font="resources/veil/rip/alagard.ttf", font_si
 def gif(frames, target, background=None, overlay=None, dim=(100, 100), transparent=False, duration=600):
     images = []
     icc = None
-    for filename in sorted(os.listdir(frames)):
-        image = Image.open("{}/{}".format(frames, filename)).convert('RGBA', dither=None)
+    for image in frames:
+        image = image.convert('RGBA', dither=None)
         if background is not None:
             bg = Image.open(background).convert('RGBA', dither=None)
             bg.paste(image, (-4, 3), image)
@@ -68,17 +68,18 @@ def overlay(target, images, scale=1):
 			bg = img
 	bg.resize(size, Image.NEAREST).save(target)
 
-def random_png(path):
+def all_png(path):
     return [f for f in sorted(os.listdir(path)) if f.endswith('.png')]
+
 
 ###########################################################################################
 
 
 def mugshot(wizard):
-    bg = Image.open("{}/resources/mugshot/bg/{}".format(os.getcwd(), random.choice(os.listdir("resources/mugshot/bg"))))
-    fg = Image.open("{}/resources/mugshot/frame/{}".format(os.getcwd(), random.choice(os.listdir("resources/mugshot/frame"))))
+    bg = Image.open("{}/resources/mugshot/bg/{}".format(os.getcwd(), random.choice(all_png("resources/mugshot/bg"))))
+    fg = Image.open("{}/resources/mugshot/frame/{}".format(os.getcwd(), random.choice(all_png("resources/mugshot/frame"))))
     head = Image.new("RGBA", (50,50), (0,0,0,255))
-    for filename in random_png("{}/50".format(wizard.path)):
+    for filename in all_png("{}/50".format(wizard.path)):
         if filename.startswith("head"):
             head = Image.open("{}/50/{}".format(wizard.path, filename))
         if filename.startswith("body"):
@@ -89,7 +90,7 @@ def mugshot(wizard):
     	(head, (-9, 3)),
     	(fg, (0,0))
     ]
-    overlay(wizard.rip, layers, 4)
+    overlay(wizard.mugshot, layers, 4)
 
 def gm(wizard):
     img_gm = Image.open("{}/resources/gm/gm.png".format(os.getcwd()))
@@ -106,13 +107,12 @@ def gm(wizard):
 def rip(wizard, size=(520, 520), offset=(42, 34)):
     background = "{}/resources/veil/rip/bg.png".format(os.getcwd())
     overlay = "{}/resources/veil/rip/fg.png".format(os.getcwd())
-
     # Build image with wizard head, body, prop
     fp_bg = Image.open(background)
     fp_frame = Image.open(overlay)
     wiz_head = None # Damn you headless wizard, this is for you
     wiz_prop = None
-    for filename in random_png("{}/50".format(wizard.path)):
+    for filename in all_png("{}/50".format(wizard.path)):
         if filename.startswith("head"):
             wiz_head = Image.open("{}/50/{}".format(wizard.path, filename))
             wiz_head = desaturate(wiz_head)
@@ -129,11 +129,9 @@ def rip(wizard, size=(520, 520), offset=(42, 34)):
         fp_bg.paste(wiz_head, offset, wiz_head)
     fp_bg.paste(fp_frame, (0, 0), fp_frame)
     fp_final = fp_bg.resize(size, Image.NEAREST)
-    
     # Top banner
     title = text(" Rest In Peace", fp_final.size, 62)
     fp_final.paste(title, (0,0), title)
-
     # Bottom banner
     font = "resources/veil/rip/alagard.ttf"
     epitaph = "Burnt, But Notte Forgotten"
@@ -145,9 +143,9 @@ def rip(wizard, size=(520, 520), offset=(42, 34)):
 
     fp_final.save(wizard.rip)
 
-def walkcycles(wizard):
-    sprites_path = "{}/sprites".format(wizard.path)
-    gif(sprites_path, wizard.walkcycle, duration=150)
-    gif(sprites_path, wizard.walkcycle_nobg, duration=150, transparent=True)
-    gif(sprites_path, wizard.walkcycle_large, duration=150, dim=(400, 400))
-    gif(sprites_path, wizard.walkcycle_large_nobg, duration=150, dim=(400, 400), transparent=True)
+def walkcycle(wizard):
+    sprites = tile(Image.open(wizard.spritesheet), 4)
+    gif(sprites, wizard.walkcycle, duration=150)
+    gif(sprites, wizard.walkcycle_nobg, duration=150, transparent=True)
+    gif(sprites, wizard.walkcycle_large, duration=150, dim=(400, 400))
+    gif(sprites, wizard.walkcycle_large_nobg, duration=150, dim=(400, 400), transparent=True)
