@@ -7,6 +7,7 @@ import logging.config
 import opensea
 from random import randrange
 from functools import reduce
+import magic
 
 # Utilities related to Discord
 class DiscordUtils:
@@ -55,6 +56,14 @@ logging.basicConfig(filename='wizz_bot.log',
                     datefmt='%d-%m-%Y @ %H:%M:%S',
                     level=logging.INFO)
 logger = logging.getLogger('wizz_bot')
+
+
+#
+# Magic
+#
+@bot.command(name="magic")
+async def do_magic(ctx):
+	magic.grant_magic(ctx.message.author.id, 1, ctx.guild.id)
 
 
 #
