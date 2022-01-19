@@ -1,4 +1,5 @@
 import os
+import random
 from PIL import Image, ImageSequence, ImageEnhance, ImageDraw, ImageFont
 from itertools import product
 
@@ -39,8 +40,8 @@ def text(text, dimensions, y_pos, font="resources/veil/rip/alagard.ttf", font_si
 def gif(frames, target, background=None, overlay=None, dim=(100, 100), transparent=False, duration=600):
     images = []
     icc = None
-    for filename in sorted(os.listdir(frames)):
-        image = Image.open("{}/{}".format(frames, filename)).convert('RGBA', dither=None)
+    for image in frames:
+        image = image.convert('RGBA', dither=None)
         if background is not None:
             bg = Image.open(background).convert('RGBA', dither=None)
             bg.paste(image, (-4, 3), image)
@@ -57,34 +58,39 @@ def gif(frames, target, background=None, overlay=None, dim=(100, 100), transpare
     else:
         images[0].save(target, save_all=True, append_images=images[1:], optimize=False, quality=100, duration=duration, loop=0)
 
-def overlay(target, layers, scale=1):
-	prev = None
-	for layer, offset in layers:
-		img = Image.open(layer)
-		if prev is not None:
-			prev.paste(img, offset, img)
+def overlay(target, images, scale=1):
+	bg = None
+	for img, offset in images:
+		if bg is not None:
+			bg.paste(img, offset, img)
 		else:
 			size = (img.size[0]*scale, img.size[1]*scale)
-			prev = img
-	final = prev.resize(size, Image.NEAREST)
-	final.save(target)
+			bg = img
+	bg.resize(size, Image.NEAREST).save(target)
 
-def mugshot(wizard, background, overlay): 
-    head = None
-    body = None
-    for filename in sorted(os.listdir("{}/50".format(wizard.path))):
+def all_png(path):
+    return [f for f in sorted(os.listdir(path)) if f.endswith('.png')]
+
+
+###########################################################################################
+
+
+def mugshot(wizard):
+    bg = Image.open("{}/resources/mugshot/bg/{}".format(os.getcwd(), random.choice(all_png("resources/mugshot/bg"))))
+    fg = Image.open("{}/resources/mugshot/frame/{}".format(os.getcwd(), random.choice(all_png("resources/mugshot/frame"))))
+    head = Image.new("RGBA", (50,50), (0,0,0,255))
+    for filename in all_png("{}/50".format(wizard.path)):
         if filename.startswith("head"):
             head = Image.open("{}/50/{}".format(wizard.path, filename))
         if filename.startswith("body"):
             body = Image.open("{}/50/{}".format(wizard.path, filename))               
-    fp_bg = Image.open(background)
-    fp_frame = Image.open(overlay)
-    fp_bg.paste(body, (-9, 3), body)
-    if head is not None:
-        fp_bg.paste(head, (-9, 3), head)
-    fp_bg.paste(fp_frame, (0, 0), fp_frame)
-    fp_final = fp_bg.resize((200, 200), Image.NEAREST)
-    fp_final.save(wizard.mugshot)
+    layers = [
+    	(bg, (0,0)),
+    	(body, (-9, 3)),
+    	(head, (-9, 3)),
+    	(fg, (0,0))
+    ]
+    overlay(wizard.mugshot, layers, 4)
 
 def gm(wizard):
     img_gm = Image.open("{}/resources/gm/gm.png".format(os.getcwd()))
@@ -101,13 +107,12 @@ def gm(wizard):
 def rip(wizard, size=(520, 520), offset=(42, 34)):
     background = "{}/resources/veil/rip/bg.png".format(os.getcwd())
     overlay = "{}/resources/veil/rip/fg.png".format(os.getcwd())
-
     # Build image with wizard head, body, prop
     fp_bg = Image.open(background)
     fp_frame = Image.open(overlay)
     wiz_head = None # Damn you headless wizard, this is for you
     wiz_prop = None
-    for filename in sorted(os.listdir("{}/50".format(wizard.path))):
+    for filename in all_png("{}/50".format(wizard.path)):
         if filename.startswith("head"):
             wiz_head = Image.open("{}/50/{}".format(wizard.path, filename))
             wiz_head = desaturate(wiz_head)
@@ -124,11 +129,9 @@ def rip(wizard, size=(520, 520), offset=(42, 34)):
         fp_bg.paste(wiz_head, offset, wiz_head)
     fp_bg.paste(fp_frame, (0, 0), fp_frame)
     fp_final = fp_bg.resize(size, Image.NEAREST)
-    
     # Top banner
     title = text(" Rest In Peace", fp_final.size, 62)
     fp_final.paste(title, (0,0), title)
-
     # Bottom banner
     font = "resources/veil/rip/alagard.ttf"
     epitaph = "Burnt, But Notte Forgotten"
@@ -139,3 +142,10 @@ def rip(wizard, size=(520, 520), offset=(42, 34)):
     fp_final.paste(subtitle2, (0,0), subtitle2)                
 
     fp_final.save(wizard.rip)
+
+def walkcycle(wizard):
+    sprites = tile(Image.open(wizard.spritesheet), 4)
+    gif(sprites, wizard.walkcycle, duration=150)
+    gif(sprites, wizard.walkcycle_nobg, duration=150, transparent=True)
+    gif(sprites, wizard.walkcycle_large, duration=150, dim=(400, 400))
+    gif(sprites, wizard.walkcycle_large_nobg, duration=150, dim=(400, 400), transparent=True)

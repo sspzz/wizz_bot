@@ -5,7 +5,9 @@ import discord
 import logging
 import logging.config
 import opensea
+from random import randrange
 from functools import reduce
+import random
 
 # Utilities related to Discord
 class DiscordUtils:
@@ -56,6 +58,18 @@ logging.basicConfig(filename='wizz_bot.log',
 logger = logging.getLogger('wizz_bot')
 
 
+# 
+# Dice
+#
+@bot.command(name="d20")
+async def d20(ctx):
+	await dice(ctx, 20)
+
+@bot.command(name="dice", aliases=["d"])
+async def dice(ctx, num):
+	await DiscordUtils.embed(ctx, "D {}".format(num), "{} rolled {}".format(ctx.message.author, random.randint(1, int(num))))
+
+
 #
 # Lore
 #
@@ -83,35 +97,23 @@ async def wizard_profile(ctx, wiz_id):
 		await ctx.send("Could not summon wizard {}".format(wiz_id))
 
 #
-# Animated turnaround
+# Ho ho ho!
 #
-async def turnaround(ctx, wiz_id, large, transparent):
-	logger.info("TURNAROUND %s", wiz_id)
+@bot.command(name="mount", aliases=["pony"])
+async def wizmas(ctx, wiz_id, pony_id=None):
+	logger.info("WIZMAS %s %s", wiz_id, pony_id)
 	wizard = WizardFactory.get_wizard(wiz_id)
-	if large:
-		file = wizard.turnaround_large if not transparent else wizard.turnaround_large_nobg
-	else:
-		file = wizard.turnaround if not transparent else wizard.turnaround_nobg
 	if wizard is not None:
-		await DiscordUtils.embed_image(ctx, wizard.name.title(), file, "{}.gif".format(wiz_id), url=wizard.url)
+		if pony_id is None:
+			pony_id = randrange(0, 343) # TODO: Remember to update as more are minted
+		if wizard.get_pony(pony_id):
+			await DiscordUtils.embed_image(ctx, wizard.name.title(), wizard.pony, "{}.png".format(wiz_id))
+		else:
+			await ctx.send("Could not mount wizard {} to pony {}".format(wiz_id, pony_id))
 	else:
 		await ctx.send("Could not summon wizard {}".format(wiz_id))
 
-@bot.command(name="gif", aliases=["wg", "wizgif"])
-async def wizard_turnaround(ctx, wiz_id):
-	await turnaround(ctx, wiz_id, False, False)
-
-@bot.command(name="gifbig", aliases=["wgb", "wizgifbig"])
-async def wizard_turnaround_large(ctx, wiz_id):
-	await turnaround(ctx, wiz_id, True, False)
-
-@bot.command(name="tgif", aliases=["twg", "twizgif"])
-async def wizard_turnaround_nobg(ctx, wiz_id):
-	await turnaround(ctx, wiz_id, False, True)
-
-@bot.command(name="tgifbig", aliases=["twgb", "twizgifbig"])
-async def wizard_turnaround_large_nobg(ctx, wiz_id):
-	await turnaround(ctx, wiz_id, True, True)
+# TODO mulitple wizards walk together?
 
 #
 # Animated walk cycles
@@ -128,19 +130,19 @@ async def walkcycle(ctx, wiz_id, large, transparent):
 	else:
 		await ctx.send("Could not summon wizard {}".format(wiz_id))
 
-@bot.command(name="walk", aliases=["wc", "walkcycle"])
+@bot.command(name="walk", aliases=["wc", "gif"])
 async def wizard_walkcycle(ctx, wiz_id):
 	await walkcycle(ctx, wiz_id, False, False)
 
-@bot.command(name="walkbig", aliases=["wcb", "walkcyclebig"])
+@bot.command(name="walkbig", aliases=["wcb", "gifbig"])
 async def wizard_walkcycle_large(ctx, wiz_id):
 	await walkcycle(ctx, wiz_id, True, False)
 
-@bot.command(name="twalk", aliases=["twc", "twalkcycle"])
+@bot.command(name="twalk", aliases=["twc", "tgif"])
 async def wizard_walkcycle_nobg(ctx, wiz_id):
 	await walkcycle(ctx, wiz_id, False, True)
 
-@bot.command(name="twalkbig", aliases=["twcb", "twalkcyclebig"])
+@bot.command(name="twalkbig", aliases=["twcb", "tgifbig"])
 async def wizard_walkcycle_large_nobg(ctx, wiz_id):
 	await walkcycle(ctx, wiz_id, True, True)
 
@@ -156,26 +158,6 @@ async def wizard_mugshot(ctx, wiz_id):
 	else:
 		await ctx.send("Could not summon wizard {}".format(wiz_id))
 
-#
-# Animated mugshot
-#
-@bot.command(name="gifmug", aliases=["mugturn", "mgif"])
-async def wizard_mugshot_turnaround(ctx, wiz_id):
-	logger.info("MUGSHOT TURNAROUND %s", wiz_id)
-	wizard = WizardFactory.get_wizard(wiz_id)
-	if wizard is not None:
-		await DiscordUtils.embed_image(ctx, wizard.name.title(), wizard.turnaround_mugshot, "{}.gif".format(wiz_id), url=wizard.url)
-	else:
-		await ctx.send("Could not summon wizard {}".format(wiz_id))
-
-@bot.command(name="gifmugbig", aliases=["mugturnbig", "mgifbig"])
-async def wizard_mugshot_turnaround_large(ctx, wiz_id):
-	logger.info("MUGSHOT TURNAROUND %s", wiz_id)
-	wizard = WizardFactory.get_wizard(wiz_id)
-	if wizard is not None:
-		await DiscordUtils.embed_image(ctx, wizard.name.title(), wizard.turnaround_mugshot_large, "{}.gif".format(wiz_id), url=wizard.url)
-	else:
-		await ctx.send("Could not summon wizard {}".format(wiz_id))
 
 #
 # GM
@@ -188,6 +170,7 @@ async def wizard_gm(ctx, wiz_id):
 		await DiscordUtils.embed_image(ctx, wizard.name.title(), wizard.gm, "{}.png".format(wiz_id), url=wizard.url)
 	else:
 		await ctx.send("Could not summon wizard {}".format(wiz_id))
+
 #
 # RIP
 #
@@ -201,64 +184,11 @@ async def wizard_rip(ctx, wiz_id):
 		await ctx.send("Could not summon wizard {}".format(wiz_id))
 
 #
-# Listings & Sales
-#
-@bot.command(name="listings", aliases=["l", "list"])
-async def listings(ctx, num):
-	logger.info("LISTINGS %s", num)
-	try:
-		num = int(num)
-		listings = opensea.get_listings(opensea.contract_wizards, min(20, num))
-		thumbnail = listings[0].image_url
-		fields = map(lambda l: (l.name, "[#{}]({}) listed for {} {}".format(l.token_id, l.url, l.price, l.currency)), listings)
-		await DiscordUtils.embed_fields(ctx, "Recent Listings", fields=fields, thumbnail=thumbnail, inline=False)
-	except Exception as e:
-		print("Error: {}".format(str(e)))
-
-@bot.command(name="soulistings", aliases=["sl", "slist"])
-async def listings(ctx, num):
-	logger.info("LISTINGS %s", num)
-	try:
-		num = int(num)
-		listings = opensea.get_listings(opensea.contract_souls, min(20, num))
-		thumbnail = listings[0].image_url
-		fields = map(lambda l: (l.name, "[#{}]({}) listed for {} {}".format(l.token_id, l.url, l.price, l.currency)), listings)
-		await DiscordUtils.embed_fields(ctx, "Recent Listings", fields=fields, thumbnail=thumbnail, inline=False)
-	except Exception as e:
-		print("Error: {}".format(str(e)))
-
-@bot.command(name="sales", aliases=["s"])
-async def sales(ctx, num):
-	logger.info("SALES %s", num)
-	try:
-		num = int(num)
-		res = opensea.get_sales(opensea.contract_wizards, min(20, num))
-		thumbnail = res[0].image_url
-		fields = map(lambda l: (l.name, "[#{}]({}) sold for {} {}".format(l.token_id, l.url, l.price, l.currency)), res)
-		await DiscordUtils.embed_fields(ctx, "Recent Sales", fields=fields, thumbnail=thumbnail, inline=False)
-	except Exception as e:
-		print("Error: {}".format(str(e)))
-
-@bot.command(name="soulsales", aliases=["ssales", "ss"])
-async def soul_sales(ctx, num):
-	logger.info("SSALES %s", num)
-	try:
-		num = int(num)
-		res = opensea.get_sales(opensea.contract_souls, min(20, num))
-		thumbnail = res[0].image_url
-		fields = map(lambda l: (l.name, "[#{}]({}) sold for {} {}".format(l.token_id, l.url, l.price, l.currency)), res)
-		await DiscordUtils.embed_fields(ctx, "Recent Sales", fields=fields, thumbnail=thumbnail, inline=False)
-	except Exception as e:
-		print("Error: {}".format(str(e)))
-
-
-#
 # Sacred Flame
 #
 @bot.command(name="flame")
 async def flame(ctx):
 	logger.info("FLAME")
-	listing = opensea.get_latest_sale(opensea.contract_flames)
 	filename = "sacred_flame.gif"
 	file = "./resources/veil/{}".format(filename)
 	title = "Sacred Flame"
@@ -271,61 +201,7 @@ Burning a Wizard, however, is Dark Magic which is always risky and unpredictable
 So choose wisely.
 
 [Read more about The Great Burning](https://www.forgottenrunes.com/posts/forgotten-souls)"""
-	floor = "Last price: {} {}".format(listing.price, listing.currency)
-	await DiscordUtils.embed_image(ctx, title, file, filename, description=description, footer=floor, url=listing.url)
-
-
-#
-# Recurring tasks, like checking sales
-#
-from discord.ext import tasks
-import datetime
-import calendar
-
-@tasks.loop(seconds=60)
-async def check_soul_sales():
-	# sales 863044365299220511
-	# live-burn-chat 903730142155788388
-	# wiz-bots 896204060405940245
-	# wenmoon 437876896664125443
-	sales_channels = [437876896664125443, 896204060405940245, 903730142155788388]
-
-	try:
-		prev_latest_sale = float(next(open('latest_sale_souls.txt', 'r')))
-		res = opensea.get_sales(opensea.contract_souls, 10, after=prev_latest_sale)
-		if res is not None:
-			for sale in res:
-				for channel in sales_channels:
-					title = "New Sale: {}".format(sale.name)
-					description = sale.date.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
-					fields = []
-					fields.append(("Amount", "{} {}".format(sale.price, sale.currency)))
-					if sale.seller is not None:
-						fields.append(("Seller", "[{}]({}) ({})".format(sale.seller.wallet[0:8], sale.seller.opensea_profile, sale.seller.name)))
-					if sale.buyer is not None:
-						fields.append(("Buyer", "[{}]({}) ({})".format(sale.buyer.wallet[0:8], sale.buyer.opensea_profile, sale.buyer.name)))
-					await DiscordUtils.embed_fields(bot.get_channel(channel), title, fields=fields, thumbnail=sale.image_url, inline=False, url=sale.permalink)
-			new_latest_sale = calendar.timegm(res[0].date.timetuple())+1
-	except:
-		# First time we run, get the latest sale and store timestamp
-		res = opensea.get_sales(opensea.contract_souls, 1)		
-		new_latest_sale = calendar.timegm(res[0].date.timetuple())+1
-
-	try:
-		out = str(new_latest_sale)
-		ts_file = open('latest_sale_souls.txt', 'w')
-		ts_file.write(out)
-		ts_file.close()
-	except:
-		pass
-
-
-@check_soul_sales.before_loop
-async def check_soul_sales_before():
-    await bot.wait_until_ready()
-
-# No need, RuneBot now supports Soul sales :)
-# check_soul_sales.start()
+	await DiscordUtils.embed_image(ctx, title, file, filename, description=description)
 
 
 #

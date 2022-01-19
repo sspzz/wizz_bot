@@ -16,6 +16,14 @@ class Wizard(object):
         self.wiz_id = wiz_id
         self.artwork_root = artwork_root
 
+    def get_pony(self, pony_id):
+        try:
+            endpoint = "https://www.forgottenrunes.com/api/art/wizards/{}/riding/pony/{}".format(self.wiz_id, pony_id)
+            urllib.request.urlretrieve(endpoint, self.pony)
+            return True
+        except:
+            return False
+
     @property
     def name(self):
         readme = open("{}/{}/README.md".format(self.artwork_root, self.wiz_id), 'rt')
@@ -46,30 +54,6 @@ class Wizard(object):
         return "{}/{}-mugshot-pfp.png".format(self.path, self.wiz_id)
 
     @property
-    def turnaround(self):
-        return "{}/{}s.gif".format(self.path, self.wiz_id)
-
-    @property
-    def turnaround_large(self):
-        return "{}/{}.gif".format(self.path, self.wiz_id)
-
-    @property
-    def turnaround_nobg(self):
-        return "{}/{}-nobg-s.gif".format(self.path, self.wiz_id)
-
-    @property
-    def turnaround_large_nobg(self):
-        return "{}/{}-nobg.gif".format(self.path, self.wiz_id)
-
-    @property
-    def turnaround_mugshot(self):
-        return "{}/{}-mugshot-s.gif".format(self.path, self.wiz_id)
-
-    @property
-    def turnaround_mugshot_large(self):
-        return "{}/{}-mugshot.gif".format(self.path, self.wiz_id)
-
-    @property
     def rip(self):
         return "{}/{}-rip.png".format(self.path, self.wiz_id)
 
@@ -78,12 +62,8 @@ class Wizard(object):
         return "{}/{}-gm.png".format(self.path, self.wiz_id)
 
     @property
-    def sprites(self):
-        return "{}/sprites".format(self.path)
-
-    @property
     def spritesheet(self):
-        return "{}/{}-spritesheet.png".format(self.path, self.wiz_id)
+        return "{}/50/spritesheet/wizards-{}.png".format(self.path, self.wiz_id)
 
     @property
     def walkcycle(self):
@@ -100,6 +80,11 @@ class Wizard(object):
     @property
     def walkcycle_large_nobg(self):
         return "{}/{}-walkcycle-nobg.gif".format(self.path, self.wiz_id)
+
+    @property
+    def pony(self):
+        return "{}/{}-pony.png".format(self.path, self.wiz_id)
+  
 
 class WizardFactory:
     @staticmethod
@@ -139,59 +124,27 @@ class WizardFactory:
                     os.remove(zip_file)    
 
                 # Extract main artwork, if not cached
+                
                 if not os.path.isfile(wizard.pfp) or refresh:
-                    pfp_original_file = "{}-{}.png".format(wizard.wiz_id, wizard.name.replace("  ", " ").replace(" ", "-").replace("'", ""))
+                    pfp_original_file = "{}-{}.png".format(wizard.wiz_id, wizard.name.replace("  ", " ").replace(" ", "-").replace("'", "").replace(".", ""))
                     pfp_original = "{}/400/{}".format(wizard.path, pfp_original_file)
                     shutil.copy(pfp_original, wizard.pfp)
                 if not os.path.isfile(wizard.pfp_nobg) or refresh:
-                    pfp_original_file = "{}-{}-nobg.png".format(wizard.wiz_id, wizard.name.replace("  ", " ").replace(" ", "-").replace("'", ""))
+                    pfp_original_file = "{}-{}-nobg.png".format(wizard.wiz_id, wizard.name.replace("  ", " ").replace(" ", "-").replace("'", "").replace(".", ""))
                     pfp_original = "{}/400/{}".format(wizard.path, pfp_original_file)
-                    shutil.copy(pfp_original, wizard.pfp_nobg)                
-
-                # Download spritesheet
-                if cached_wizard_path is None or not os.path.isdir(wizard.sprites):
-                    try:
-                        os.makedirs(wizard.sprites)
-                    except:
-                        pass
-                    urllib.request.urlretrieve("https://www.forgottenrunes.com/api/art/wizards/{}/spritesheet.png".format(wiz_id), wizard.spritesheet)        
-                    sprite_tiles = imagetools.tile(Image.open(wizard.spritesheet), 4)
-                    for i, sprite in enumerate(sprite_tiles):
-                        sprite.save("{}/{}.png".format(wizard.sprites, 100+i))
+                    shutil.copy(pfp_original, wizard.pfp_nobg)
 
             # Fetch artwork etc
             download_content()
 
-            # Random mugshot background and frame
-            mugshot_rand_bg_path = "{}/resources/mugshot/bg/{}".format(os.getcwd(), random.choice(os.listdir("resources/mugshot/bg")))
-            mugshot_rand_frame_path = "{}/resources/mugshot/frame/{}".format(os.getcwd(), random.choice(os.listdir("resources/mugshot/frame")))
-
-            # Generate "framed profile", aka. mugshot           
-            imagetools.mugshot(wizard, mugshot_rand_bg_path, mugshot_rand_frame_path)
-
-            # Generate animated turnaround GIFs        
-            turnarounds_path = "{}/50/turnarounds".format(wizard.path)
-            imagetools.gif(turnarounds_path, wizard.turnaround)
-            imagetools.gif(turnarounds_path, wizard.turnaround_nobg, transparent=True)
-            imagetools.gif(turnarounds_path, wizard.turnaround_large, dim=(400, 400))
-            imagetools.gif(turnarounds_path, wizard.turnaround_large_nobg, dim=(400, 400), transparent=True)
-            imagetools.gif(turnarounds_path, wizard.turnaround_mugshot, mugshot_rand_bg_path, mugshot_rand_frame_path)
-            imagetools.gif(turnarounds_path, wizard.turnaround_mugshot_large, mugshot_rand_bg_path, mugshot_rand_frame_path, (400, 400))
-
-            # Animated walk cycles
-            imagetools.gif(wizard.sprites, wizard.walkcycle, duration=150)
-            imagetools.gif(wizard.sprites, wizard.walkcycle_nobg, duration=150, transparent=True)
-            imagetools.gif(wizard.sprites, wizard.walkcycle_large, duration=150, dim=(400, 400))
-            imagetools.gif(wizard.sprites, wizard.walkcycle_large_nobg, duration=150, dim=(400, 400), transparent=True)
-
-            # Generate RIP
+            # Generate content
+            imagetools.mugshot(wizard)
+            imagetools.walkcycle(wizard)
             imagetools.rip(wizard)
-
-            # Genereate GM
             imagetools.gm(wizard)
 
         except Exception as e:
-            print("Error summoing {}: {}".format(wiz_id, str(e)))
+            print("Error summoning {}: {}".format(wiz_id, str(e)))
             return None
 
         return wizard
