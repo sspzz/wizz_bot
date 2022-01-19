@@ -7,7 +7,7 @@ import logging.config
 import opensea
 from random import randrange
 from functools import reduce
-import magic
+import random
 
 # Utilities related to Discord
 class DiscordUtils:
@@ -58,12 +58,16 @@ logging.basicConfig(filename='wizz_bot.log',
 logger = logging.getLogger('wizz_bot')
 
 
+# 
+# Dice
 #
-# Magic
-#
-@bot.command(name="magic")
-async def do_magic(ctx):
-	magic.grant_magic(ctx.message.author.id, 1, ctx.guild.id)
+@bot.command(name="d20")
+async def d20(ctx):
+	await dice(ctx, 20)
+
+@bot.command(name="dice", aliases=["d"])
+async def dice(ctx, num):
+	await DiscordUtils.embed(ctx, "D {}".format(num), "{} rolled {}".format(ctx.message.author, random.randint(1, int(num))))
 
 
 #
@@ -108,6 +112,8 @@ async def wizmas(ctx, wiz_id, pony_id=None):
 			await ctx.send("Could not mount wizard {} to pony {}".format(wiz_id, pony_id))
 	else:
 		await ctx.send("Could not summon wizard {}".format(wiz_id))
+
+# TODO mulitple wizards walk together?
 
 #
 # Animated walk cycles

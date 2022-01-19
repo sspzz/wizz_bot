@@ -124,12 +124,13 @@ class WizardFactory:
                     os.remove(zip_file)    
 
                 # Extract main artwork, if not cached
+                
                 if not os.path.isfile(wizard.pfp) or refresh:
-                    pfp_original_file = "{}-{}.png".format(wizard.wiz_id, wizard.name.replace("  ", " ").replace(" ", "-").replace("'", ""))
+                    pfp_original_file = "{}-{}.png".format(wizard.wiz_id, wizard.name.replace("  ", " ").replace(" ", "-").replace("'", "").replace(".", ""))
                     pfp_original = "{}/400/{}".format(wizard.path, pfp_original_file)
                     shutil.copy(pfp_original, wizard.pfp)
                 if not os.path.isfile(wizard.pfp_nobg) or refresh:
-                    pfp_original_file = "{}-{}-nobg.png".format(wizard.wiz_id, wizard.name.replace("  ", " ").replace(" ", "-").replace("'", ""))
+                    pfp_original_file = "{}-{}-nobg.png".format(wizard.wiz_id, wizard.name.replace("  ", " ").replace(" ", "-").replace("'", "").replace(".", ""))
                     pfp_original = "{}/400/{}".format(wizard.path, pfp_original_file)
                     shutil.copy(pfp_original, wizard.pfp_nobg)
 
