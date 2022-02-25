@@ -1,4 +1,5 @@
 import os
+from os import path
 import re
 import sys
 import shutil
@@ -82,6 +83,39 @@ class Wizard(object):
         return "{}/{}-walkcycle-nobg.gif".format(self.path, self.wiz_id)
 
     @property
+    def has_familiar(self):
+        return path.exists(self.spritesheet_familiar)
+
+    @property
+    def spritesheet_familiar(self):
+        return "{}/50/familiar-spritesheet/wizard-familiars-{}.png".format(self.path, self.wiz_id)
+
+    @property
+    def spritesheet_familiar_rows(self):
+        path, dirs, files = next(os.walk("{}/50/familiar-spritesheet/frames".format(self.path)))
+        return len(files) / 4
+
+    @property
+    def walkcycle_familiar(self):
+        return "{}/{}-walkcycle-familiar-s.gif".format(self.path, self.wiz_id)
+
+    @property
+    def walkcycle_familiar_large(self):
+        return "{}/{}-walkcycle-familiar.gif".format(self.path, self.wiz_id)
+
+    @property
+    def walkcycle_familiar_nobg(self):
+        return "{}/{}-walkcycle-familiar-nobg-s.gif".format(self.path, self.wiz_id)
+
+    @property
+    def walkcycle_familiar_large_nobg(self):
+        return "{}/{}-walkcycle-familiar-nobg.gif".format(self.path, self.wiz_id)
+
+    @property
+    def walkcycle_with_familiar(self):
+        return "{}/{}-walkcycle-with-familiar.gif".format(self.path, self.wiz_id)
+
+    @property
     def pony(self):
         return "{}/{}-pony.png".format(self.path, self.wiz_id)
   
@@ -102,44 +136,46 @@ class WizardFactory:
 
         wizard = Wizard(wiz_id, path_artwork)
 
+        def download_content():
+            # Check cache if we don't want to force download
+            if not refresh:
+                cached_wizards = os.listdir(path_artwork)
+                cached_wizard_path = None
+                for wiz_dir in cached_wizards:
+                    if wiz_dir == wiz_id:
+                        cached_wizard_path = wizard.path
+            else:
+                cached_wizard_path = None
+
+            # Download artwork
+            if cached_wizard_path is None:
+                zip_file = "{}/{}.zip".format(path_artwork, wiz_id)
+                endpoint_wizard_artwork = 'https://www.forgottenrunes.com/api/art/wizards/{}.zip'
+                urllib.request.urlretrieve(endpoint_wizard_artwork.format(wiz_id), zip_file)
+                zip_ref = zipfile.ZipFile(zip_file, 'r')
+                zip_ref.extractall(wizard.path)
+                os.remove(zip_file)    
+
+            # Extract main artwork, if not cached
+            
+            if not os.path.isfile(wizard.pfp) or refresh:
+                pfp_original_file = "{}-{}.png".format(wizard.wiz_id, wizard.name.replace("  ", " ").replace(" ", "-").replace("'", "").replace(".", ""))
+                pfp_original = "{}/400/{}".format(wizard.path, pfp_original_file)
+                shutil.copy(pfp_original, wizard.pfp)
+            if not os.path.isfile(wizard.pfp_nobg) or refresh:
+                pfp_original_file = "{}-{}-nobg.png".format(wizard.wiz_id, wizard.name.replace("  ", " ").replace(" ", "-").replace("'", "").replace(".", ""))
+                pfp_original = "{}/400/{}".format(wizard.path, pfp_original_file)
+                shutil.copy(pfp_original, wizard.pfp_nobg)
+    
         try:
-            def download_content():
-                # Check cache if we don't want to force download
-                if not refresh:
-                    cached_wizards = os.listdir(path_artwork)
-                    cached_wizard_path = None
-                    for wiz_dir in cached_wizards:
-                        if wiz_dir == wiz_id:
-                            cached_wizard_path = wizard.path
-                else:
-                    cached_wizard_path = None
-
-                # Download artwork
-                if cached_wizard_path is None:
-                    zip_file = "{}/{}.zip".format(path_artwork, wiz_id)
-                    endpoint_wizard_artwork = 'https://www.forgottenrunes.com/api/art/wizards/{}.zip'
-                    urllib.request.urlretrieve(endpoint_wizard_artwork.format(wiz_id), zip_file)
-                    zip_ref = zipfile.ZipFile(zip_file, 'r')
-                    zip_ref.extractall(wizard.path)
-                    os.remove(zip_file)    
-
-                # Extract main artwork, if not cached
-                
-                if not os.path.isfile(wizard.pfp) or refresh:
-                    pfp_original_file = "{}-{}.png".format(wizard.wiz_id, wizard.name.replace("  ", " ").replace(" ", "-").replace("'", "").replace(".", ""))
-                    pfp_original = "{}/400/{}".format(wizard.path, pfp_original_file)
-                    shutil.copy(pfp_original, wizard.pfp)
-                if not os.path.isfile(wizard.pfp_nobg) or refresh:
-                    pfp_original_file = "{}-{}-nobg.png".format(wizard.wiz_id, wizard.name.replace("  ", " ").replace(" ", "-").replace("'", "").replace(".", ""))
-                    pfp_original = "{}/400/{}".format(wizard.path, pfp_original_file)
-                    shutil.copy(pfp_original, wizard.pfp_nobg)
-
             # Fetch artwork etc
             download_content()
 
             # Generate content
             imagetools.mugshot(wizard)
             imagetools.walkcycle(wizard)
+            imagetools.walkcycle_familiar(wizard)
+            imagetools.walkcycle_wizard_and_familiar(wizard)
             imagetools.rip(wizard)
             imagetools.gm(wizard)
 

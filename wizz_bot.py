@@ -118,17 +118,25 @@ async def wizmas(ctx, wiz_id, pony_id=None):
 #
 # Animated walk cycles
 #
-async def walkcycle(ctx, wiz_id, large, transparent):
+async def walkcycle(ctx, wiz_id, large, transparent, familiar=False):
 	logger.info("WALKCYCLE %s", wiz_id)
 	wizard = WizardFactory.get_wizard(wiz_id)
 	if large:
-		file = wizard.walkcycle_large if not transparent else wizard.walkcycle_large_nobg
+		if familiar:
+			file = wizard.walkcycle_familiar_large if not transparent else wizard.walkcycle_familiar_large_nobg
+		else:
+			file = wizard.walkcycle_large if not transparent else wizard.walkcycle_large_nobg
 	else:
-		file = wizard.walkcycle if not transparent else wizard.walkcycle_nobg
+		if familiar:
+			file = wizard.walkcycle_familiar if not transparent else wizard.walkcycle_familiar_nobg
+		else:			
+			file = wizard.walkcycle if not transparent else wizard.walkcycle_nobg
 	if wizard is not None:
-		await DiscordUtils.embed_image(ctx, wizard.name.title(), file, "{}.gif".format(wiz_id), url=wizard.url)
+		title = wizard.name.title() if not familiar else "{}'s Familiar".format(wizard.name.title())
+		await DiscordUtils.embed_image(ctx, title, file, "{}.gif".format(wiz_id), url=wizard.url)
 	else:
 		await ctx.send("Could not summon wizard {}".format(wiz_id))
+
 
 @bot.command(name="walk", aliases=["wc", "gif"])
 async def wizard_walkcycle(ctx, wiz_id):
@@ -145,6 +153,23 @@ async def wizard_walkcycle_nobg(ctx, wiz_id):
 @bot.command(name="twalkbig", aliases=["twcb", "tgifbig"])
 async def wizard_walkcycle_large_nobg(ctx, wiz_id):
 	await walkcycle(ctx, wiz_id, True, True)
+
+@bot.command(name="walkfam", aliases=["wcf", "giff"])
+async def wizard_walkcycle_familiar(ctx, wiz_id):
+	await walkcycle(ctx, wiz_id, True, False, True)
+
+@bot.command(name="familiar", aliases=["fam"])
+async def wizard_and_familiar(ctx, wiz_id):
+	wizard = WizardFactory.get_wizard(wiz_id)
+	if wizard is not None:
+		if wizard.has_familiar:
+			title = "{} with Familiar".format(wizard.name.title())
+			await DiscordUtils.embed_image(ctx, title, wizard.walkcycle_with_familiar, "{}.gif".format(wiz_id), url=wizard.url)
+		else:
+			await ctx.send("{} does not have a familiar".format(wizard.name.title()))	
+	else:
+		await ctx.send("Could not summon wizard {}".format(wiz_id))
+
 
 #
 # Mugshot
