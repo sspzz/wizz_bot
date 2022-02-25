@@ -158,7 +158,7 @@ async def wizard_walkcycle_large_nobg(ctx, wiz_id):
 async def wizard_walkcycle_familiar(ctx, wiz_id):
 	await walkcycle(ctx, wiz_id, True, False, True)
 
-@bot.command(name="familiar", aliases=["fam"])
+@bot.command(name="familiar", aliases=["fam", "bff"])
 async def wizard_and_familiar(ctx, wiz_id):
 	wizard = WizardFactory.get_wizard(wiz_id)
 	if wizard is not None:
