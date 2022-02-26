@@ -116,6 +116,10 @@ class Wizard(object):
         return "{}/{}-walkcycle-with-familiar.gif".format(self.path, self.wiz_id)
 
     @property
+    def walkcycle_with_familiar_reversed(self):
+        return "{}/{}-walkcycle-with-familiar-reverse.gif".format(self.path, self.wiz_id)
+
+    @property
     def pony(self):
         return "{}/{}-pony.png".format(self.path, self.wiz_id)
   

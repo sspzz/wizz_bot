@@ -174,33 +174,39 @@ def walkcycle_familiar(wizard):
         gif(sprites, wizard.walkcycle_familiar_large_nobg, duration=150, dim=(400, 400), transparent=True)
 
 def walkcycle_wizard_and_familiar(wizard):
-    sf = sprites_walkcycle_familiar(wizard)
-    if sf is None:
-        return
-    sw = tile(Image.open(wizard.spritesheet), 4, 4)
-    # use only "right facing" frames
-    sf = sf[-4:]
-    sw = sw[-4:]
-    # double the speed of familiar relative to wizard
-    sf.extend(sf)
-    sw = [val for val in sw for _ in (0, 1)]
-    # double the speed of floor relative to wizard/familiar by doubling frames
-    sf = [val for val in sf for _ in (0, 1)]
-    sw = [val for val in sw for _ in (0, 1)]
-    combined = []
-    for i in range(0, len(sw)):
-        def combine(left, right, bottom):
-            wiz_bg = next(filter(lambda f: f.startswith("background"), os.listdir("{}/50".format(wizard.path))), None)
-            if wiz_bg is not None:
-                bg = Image.open("{}/50/{}".format(wizard.path, wiz_bg)).resize((100, 50))
-            else:
-                bg = Image.new("RGBA", size=(100,50), color=(0,0,0,255))
-            bg.paste(left, (10,0), left)
-            bg.paste(right, (40,0), right)
-            bg.paste(bottom, (0, 45))
-            return bg
-        floor = Image.open("resources/gif/floor{}.png".format(i%4))
-        img = combine(sw[i], sf[i], floor)
-        combined.append(img)
-    gif(combined, wizard.walkcycle_with_familiar, duration=50, dim=(400, 200))
-
+    def generate_walkcycle(reversed=False):
+        sf = sprites_walkcycle_familiar(wizard)
+        if sf is None:
+            return
+        sw = tile(Image.open(wizard.spritesheet), 4, 4)
+        # use only "right facing" frames
+        if reversed:
+            sf = sf[4:8]
+            sw = sw[4:8]
+        else:
+            sf = sf[-4:]
+            sw = sw[-4:]
+        # double the speed of familiar relative to wizard
+        sf.extend(sf)
+        sw = [val for val in sw for _ in (0, 1)]
+        # double the speed of floor relative to wizard/familiar by doubling frames
+        sf = [val for val in sf for _ in (0, 1)]
+        sw = [val for val in sw for _ in (0, 1)]
+        combined = []
+        for i in range(0, len(sw)):
+            def combine(left, right, bottom):
+                wiz_bg = next(filter(lambda f: f.startswith("background"), os.listdir("{}/50".format(wizard.path))), None)
+                if wiz_bg is not None:
+                    bg = Image.open("{}/50/{}".format(wizard.path, wiz_bg)).resize((100, 50))
+                else:
+                    bg = Image.new("RGBA", size=(100,50), color=(0,0,0,255))
+                bg.paste(left, (10,0), left)
+                bg.paste(right, (40,0), right)
+                bg.paste(bottom, (0, 45))
+                return bg
+            floor = Image.open("resources/gif/floor{}.png".format(i%4 if not reversed else 3 - i%4))
+            img = combine(sw[i], sf[i], floor)
+            combined.append(img)
+        gif(combined, wizard.walkcycle_with_familiar if not reversed else wizard.walkcycle_with_familiar_reversed, duration=50, dim=(400, 200))
+    generate_walkcycle(reversed=False)
+    generate_walkcycle(reversed=True)

@@ -140,36 +140,36 @@ async def walkcycle(ctx, wiz_id, large, transparent, familiar=False):
 
 @bot.command(name="walk", aliases=["wc", "gif"])
 async def wizard_walkcycle(ctx, wiz_id):
-	await walkcycle(ctx, wiz_id, False, False)
-
-@bot.command(name="walkbig", aliases=["wcb", "gifbig"])
-async def wizard_walkcycle_large(ctx, wiz_id):
-	await walkcycle(ctx, wiz_id, True, False)
+	await walkcycle(ctx, wiz_id, large=True, transparent=False)
 
 @bot.command(name="twalk", aliases=["twc", "tgif"])
-async def wizard_walkcycle_nobg(ctx, wiz_id):
-	await walkcycle(ctx, wiz_id, False, True)
-
-@bot.command(name="twalkbig", aliases=["twcb", "tgifbig"])
 async def wizard_walkcycle_large_nobg(ctx, wiz_id):
-	await walkcycle(ctx, wiz_id, True, True)
+	await walkcycle(ctx, wiz_id, large=True, transparent=True)
 
 @bot.command(name="walkfam", aliases=["wcf", "giff"])
 async def wizard_walkcycle_familiar(ctx, wiz_id):
-	await walkcycle(ctx, wiz_id, True, False, True)
+	await walkcycle(ctx, wiz_id, large=True, transparent=False, familiar=True)
 
-@bot.command(name="familiar", aliases=["fam", "bff"])
-async def wizard_and_familiar(ctx, wiz_id):
+async def walkcycle_familiar(ctx, wiz_id, reversed=False):
+	logger.info("WALKCYCLE %s", wiz_id)
 	wizard = WizardFactory.get_wizard(wiz_id)
 	if wizard is not None:
 		if wizard.has_familiar:
 			title = "{} with Familiar".format(wizard.name.title())
-			await DiscordUtils.embed_image(ctx, title, wizard.walkcycle_with_familiar, "{}.gif".format(wiz_id), url=wizard.url)
+			await DiscordUtils.embed_image(ctx, title, wizard.walkcycle_with_familiar if not reversed else wizard.walkcycle_with_familiar_reversed, "{}.gif".format(wiz_id), url=wizard.url)
 		else:
 			await ctx.send("{} does not have a familiar".format(wizard.name.title()))	
 	else:
 		await ctx.send("Could not summon wizard {}".format(wiz_id))
 
+
+@bot.command(name="fam", aliases=["bff"])
+async def wizard_and_familiar(ctx, wiz_id):
+	await walkcycle_familiar(ctx, wiz_id)
+
+@bot.command(name="famr", aliases=["bffr"])
+async def wizard_and_familiar_reversed(ctx, wiz_id):
+	await walkcycle_familiar(ctx, wiz_id, reversed=True)
 
 #
 # Mugshot
