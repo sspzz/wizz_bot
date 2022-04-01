@@ -4,6 +4,8 @@ import re
 import sys
 import shutil
 import urllib.request
+import requests
+from io import BytesIO
 import zipfile
 import imageio
 import asyncio
@@ -128,6 +130,12 @@ class WizardFactory:
     @staticmethod
     def get_lore(wiz_id):
         return "https://www.forgottenrunes.com/lore/wizards/{}/0".format(wiz_id)
+
+    @staticmethod
+    def get_pony_walkcycle(wiz_id, pony_id, is_soul=False):
+        url = "https://www.forgottenrunes.com/api/art/{}/{}/riding/pony/{}.gif".format("wizards" if not is_soul else "souls", wiz_id, pony_id)
+        response = requests.get(url)
+        return BytesIO(response.content)
 
     @staticmethod
     def get_wizard(wiz_id, refresh=False):

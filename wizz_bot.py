@@ -113,6 +113,26 @@ async def wizmas(ctx, wiz_id, pony_id=None):
 	else:
 		await ctx.send("Could not summon wizard {}".format(wiz_id))
 
+@bot.command(name="ride", aliases=["ponywalk", "pw"])
+async def pony_walkcycle(ctx, wiz_id, pony_id):
+	try:
+		wiz_id = int(wiz_id)
+		if wiz_id >= 0 and wiz_id <= 9999:
+			img = WizardFactory.get_pony_walkcycle(wiz_id, pony_id)
+			await DiscordUtils.embed_image(ctx, "Wizard #{} riding Pony #{}".format(wiz_id, pony_id), img, "ride.gif")
+		else:
+			await ctx.send("Wizard {} does not exist".format(wiz_id, pony_id))		
+	except:
+		await ctx.send("Could not mount {} to {}".format(wiz_id, pony_id))		
+
+@bot.command(name="sride", aliases=["sponywalk", "spw"])
+async def pony_walkcycle_soul(ctx, wiz_id, pony_id):
+	try:
+		img = WizardFactory.get_pony_walkcycle(wiz_id, pony_id, is_soul=True)
+		await DiscordUtils.embed_image(ctx, "Soul #{} riding Pony #{}".format(wiz_id, pony_id), img, "ride.gif")
+	except:
+		await ctx.send("Could not mount {} to {}".format(wiz_id, pony_id))
+
 # TODO mulitple wizards walk together?
 
 #
