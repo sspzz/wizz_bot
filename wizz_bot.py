@@ -113,23 +113,32 @@ async def wizmas(ctx, wiz_id, pony_id=None):
 	else:
 		await ctx.send("Could not summon wizard {}".format(wiz_id))
 
-@bot.command(name="ride", aliases=["ponywalk", "pw"])
+
+@bot.command(name="ponywalk", aliases=["pw"])
+async def pony_walkcycle(ctx, pony_id):
+	try:
+		img = WizardFactory.get_pony_walkcycle(99999, pony_id)
+		await DiscordUtils.embed_image(ctx, "Pony #{}".format(pony_id), img, "ponywalk.gif")
+	except:
+		await ctx.send("Could not mount {} to {}".format(wiz_id, pony_id))
+
+@bot.command(name="ponyride", aliases=["pr"])
 async def pony_walkcycle(ctx, wiz_id, pony_id):
 	try:
 		wiz_id = int(wiz_id)
 		if wiz_id >= 0 and wiz_id <= 9999:
 			img = WizardFactory.get_pony_walkcycle(wiz_id, pony_id)
-			await DiscordUtils.embed_image(ctx, "Wizard #{} riding Pony #{}".format(wiz_id, pony_id), img, "ride.gif")
+			await DiscordUtils.embed_image(ctx, "Wizard #{} riding Pony #{}".format(wiz_id, pony_id), img, "ponyride.gif")
 		else:
-			await ctx.send("Wizard {} does not exist".format(wiz_id, pony_id))		
+			await ctx.send("Wizard {} does not exist".format(wiz_id, pony_id))
 	except:
-		await ctx.send("Could not mount {} to {}".format(wiz_id, pony_id))		
+		await ctx.send("Could not mount {} to {}".format(wiz_id, pony_id))
 
-@bot.command(name="sride", aliases=["sponywalk", "spw"])
+@bot.command(name="sponyride", aliases=["spr"])
 async def pony_walkcycle_soul(ctx, wiz_id, pony_id):
 	try:
 		img = WizardFactory.get_pony_walkcycle(wiz_id, pony_id, is_soul=True)
-		await DiscordUtils.embed_image(ctx, "Soul #{} riding Pony #{}".format(wiz_id, pony_id), img, "ride.gif")
+		await DiscordUtils.embed_image(ctx, "Soul #{} riding Pony #{}".format(wiz_id, pony_id), img, "ponyride.gif")
 	except:
 		await ctx.send("Could not mount {} to {}".format(wiz_id, pony_id))
 
