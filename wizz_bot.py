@@ -226,6 +226,23 @@ async def wizard_gm(ctx, wiz_id):
 		await ctx.send("Could not summon wizard {}".format(wiz_id))
 
 #
+# GM
+#
+@bot.command(name="say")
+async def wizard_gm(ctx, *, msg):
+	try:
+		words = msg.split()
+		has_token_id = words[0].isnumeric()
+		wiz_id = words[0] if has_token_id else random.randint(0, 9999)
+		logger.info("SAY %s", wiz_id)
+		phrase = " ".join(words[1 if has_token_id else 0:])
+		wizard, img = WizardFactory.catchphrase(wiz_id, phrase)
+		await DiscordUtils.embed_image(ctx, wizard.name.title(), img, "{}.png".format(wiz_id), url=wizard.url)
+	except:
+		await ctx.send("Could not summon wizard {}".format(wiz_id))
+
+
+#
 # RIP
 #
 @bot.command(name="rip")

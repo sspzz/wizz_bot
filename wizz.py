@@ -138,6 +138,13 @@ class WizardFactory:
         return BytesIO(response.content)
 
     @staticmethod
+    def catchphrase(token_id, phrase):
+        wizard = WizardFactory.get_wizard(token_id)
+        img = imagetools.catchphrase(wizard, phrase)
+        return (wizard, imagetools.to_png(img))
+
+
+    @staticmethod
     def get_wizard(wiz_id, refresh=False):
 
         path_artwork = "{}/artwork".format(os.getcwd())
