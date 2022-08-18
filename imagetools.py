@@ -24,7 +24,7 @@ class ImageText(object):
 
     def save(self, filename=None):
         self.image.save(filename or self.filename)
-    
+
     def show(self):
         self.image.show()
 
@@ -85,7 +85,7 @@ class ImageText(object):
         if line:
             lines.append(line)
         lines = [' '.join(line) for line in lines if line]
-        
+
         if position == 'middle':
             height = (self.size[1] - len(lines)*text_height + last_line_bleed)/2
             height -= text_height # the loop below will fix this height
@@ -94,7 +94,7 @@ class ImageText(object):
             height -= text_height  # the loop below will fix this height
         else:
             height = y
-            
+
         for index, line in enumerate(lines):
             height += text_height
             if place == 'left':
@@ -148,9 +148,9 @@ def tile(img, x, y):
         tiles.append(img.crop(box))
     return tiles
 
-def desaturate(img):
+def desaturate(img, amount=0.46):
     enhancer = ImageEnhance.Color(img)
-    img = enhancer.enhance(0.46)
+    img = enhancer.enhance(amount)
     return img
 
 def find_font_size(text, font, image, target_width_ratio):
@@ -172,24 +172,19 @@ def text(text, dimensions, y_pos, font="resources/veil/rip/alagard.ttf", font_si
     d.text((dimensions[0]/2, y_pos), text, font=fnt, fill=font_color, anchor="mm")
     return txt
 
-def gif(frames, target, background=None, overlay=None, dim=(100, 100), transparent=False, duration=600):
+def gif(frames, target, overlay=None, dim=(100, 100), transparent=False, duration=600):
     images = []
     icc = None
     for image in frames:
-        image = image.convert('RGBA', dither=None)
-        if background is not None:
-            bg = Image.open(background).convert('RGBA', dither=None)
-            bg.paste(image, (-4, 3), image)
-        else:
-            bg = image
+        bg = Image.new("RGBA", dim, (0,0,0,0 if transparent else 255))
+        image = image.convert('RGBA', dither=None).resize(dim, Image.NEAREST)
+        bg.paste(image, (0, 0), image)
         if overlay is not None:
             fg = Image.open(overlay).convert('RGBA', dither=None)
             bg.paste(fg, (0, 0), fg)
-        final_image = bg if not None else image
-        final_image = final_image.resize(dim, Image.NEAREST)
-        images.append(final_image)
+        images.append(bg)
     if transparent:
-        images[0].save(target, save_all=True, append_images=images[1:], optimize=False, quality=100, duration=duration, loop=0, transparency=255, disposal=2)
+        images[0].save(target, save_all=True, append_images=images[1:], optimize=False, quality=100, duration=duration, loop=0, transparency=0, disposal=2)
     else:
         images[0].save(target, save_all=True, append_images=images[1:], optimize=False, quality=100, duration=duration, loop=0)
 
@@ -204,6 +199,29 @@ def overlay(images, scale=1):
     bg.resize(size, Image.NEAREST)
     return bg
 
+def grid(width, height, step_count, color=255):
+    image = Image.new(mode='L', size=(width, height), color=color)
+
+    # Draw a grid
+    draw = ImageDraw.Draw(image)
+    y_start = 0
+    y_end = image.height
+    step_size = int(image.width / step_count)
+
+    for x in range(0, image.width, step_size):
+        line = ((x, y_start), (x, y_end))
+        draw.line(line, fill=128)
+
+    x_start = 0
+    x_end = image.width
+
+    for y in range(0, image.height, step_size):
+        line = ((x_start, y), (x_end, y))
+        draw.line(line, fill=128)
+
+    del draw
+    return image
+
 def all_png(path):
     return [f for f in sorted(os.listdir(path)) if f.endswith('.png')]
 
@@ -213,6 +231,7 @@ def to_png(img):
     byteImgIO.seek(0)
     return byteImgIO
 
+
 ###########################################################################################
 
 
@@ -220,25 +239,25 @@ def mugshot(wizard):
     bg = Image.open("{}/resources/mugshot/bg/{}".format(os.getcwd(), random.choice(all_png("resources/mugshot/bg"))))
     fg = Image.open("{}/resources/mugshot/frame/{}".format(os.getcwd(), random.choice(all_png("resources/mugshot/frame"))))
     head = Image.new("RGBA", (50,50), (0,0,0,255))
-    for filename in all_png("{}/50".format(wizard.path)):
+    for filename in all_png(wizard.base_assets_path):
         if filename.startswith("head"):
-            head = Image.open("{}/50/{}".format(wizard.path, filename))
+            head = Image.open("{}/{}".format(wizard.base_assets_path, filename))
         if filename.startswith("body"):
-            body = Image.open("{}/50/{}".format(wizard.path, filename))               
+            body = Image.open("{}/{}".format(wizard.base_assets_path, filename))
     layers = [
     	(bg, (0,0)),
     	(body, (-9, 3)),
     	(head, (-9, 3)),
     	(fg, (0,0))
     ]
-    overlay(layers, 4).save(wizard.mugshot)
+    overlay(layers, 4).resize((400,400), Image.NEAREST).save(wizard.mugshot)
 
 def gm(wizard):
     img_gm = Image.open("{}/resources/gm/gm.png".format(os.getcwd()))
     img_wiz = Image.open(wizard.pfp_nobg).resize((200, 200), Image.NEAREST)
-    wiz_bg = next(filter(lambda f: f.startswith("background"), os.listdir("{}/50".format(wizard.path))), None)
+    wiz_bg = next(filter(lambda f: f.startswith("background"), os.listdir("{}/{}".format(wizard.path, wizard.base_dimension))), None)
     if wiz_bg is not None:
-        img_bg = Image.open("{}/50/{}".format(wizard.path, wiz_bg)).resize((305, 210))
+        img_bg = Image.open("{}/{}".format(wizard.base_assets_path, wiz_bg)).resize((305, 210))
     else:
         img_bg = Image.new("RGB", (305, 210), (0,0,0,255))
     img_bg.paste(img_gm, (10, 10), img_gm)
@@ -258,10 +277,10 @@ def rip(wizard, size=(520, 520), offset=(42, 34)):
             wiz_head = Image.open("{}/50/{}".format(wizard.path, filename))
             wiz_head = desaturate(wiz_head)
         if filename.startswith("body"):
-            wiz_body = Image.open("{}/50/{}".format(wizard.path, filename))            
+            wiz_body = Image.open("{}/50/{}".format(wizard.path, filename))
             wiz_body = desaturate(wiz_body)
         if filename.startswith("prop"):
-            wiz_prop = Image.open("{}/50/{}".format(wizard.path, filename))            
+            wiz_prop = Image.open("{}/50/{}".format(wizard.path, filename))
             wiz_prop = desaturate(wiz_prop)
     fp_bg.paste(wiz_body, offset, wiz_body)
     if wiz_prop is not None:
@@ -280,7 +299,7 @@ def rip(wizard, size=(520, 520), offset=(42, 34)):
     subtitle1 = text(wizard.name.title(), fp_final.size, 449, font, font_size, (20,15,12,200))
     subtitle2 = text(epitaph, fp_final.size, 466, font, font_size, (20,15,12,200))
     fp_final.paste(subtitle1, (0,0), subtitle1)
-    fp_final.paste(subtitle2, (0,0), subtitle2)                
+    fp_final.paste(subtitle2, (0,0), subtitle2)
 
     fp_final.save(wizard.rip)
 
@@ -350,15 +369,16 @@ def walkcycle_wizard_and_familiar(wizard):
     generate_walkcycle(reversed=False)
     generate_walkcycle(reversed=True)
 
-def catchphrase(wizard, phrase):
+def catchphrase(wizard, phrase, is_warrior=False):
+    width = 60 if is_warrior else 50
     # Add the text, for now truncated to 100 chars to avoid overflow - TODO: fill vertically to fix, adjusting font size
     font = 'resources/fonts/LitterboxICG.ttf'
     truncated_phrase = phrase[:66]
     img_gm = Image.open("{}/resources/gm/bubble.png".format(os.getcwd())).resize((200, 180), Image.NEAREST)
     img_wiz = Image.open(wizard.pfp_nobg).resize((400, 400), Image.NEAREST)
-    wiz_bg = next(filter(lambda f: f.startswith("background"), os.listdir("{}/50".format(wizard.path))), None)
+    wiz_bg = next(filter(lambda f: f.startswith("background"), os.listdir("{}/{}".format(wizard.path, width))), None)
     if wiz_bg is not None:
-        img_bg = Image.open("{}/400/{}".format(wizard.path, wiz_bg)).resize((610, 420))
+        img_bg = Image.open("{}/{}/{}".format(wizard.path, width*8, wiz_bg)).resize((610, 420))
     else:
         img_bg = Image.new("RGB", (610, 420), (0,0,0,255))
     img_bg.paste(img_gm, (20, 20), img_gm)
@@ -367,4 +387,86 @@ def catchphrase(wizard, phrase):
     font = "resources/veil/rip/alagard.ttf"
     img_text.write_text_box((0, 0), truncated_phrase, box_width=180, font_filename=font, font_size=24, color=(9,7,27), place='center', position='middle')
     img_bg.paste(img_text.image, (30, 38) , img_text.image)
+    return img_bg
+
+def poster(wizard, other_wizards, is_warrior=False, is_soul=False):
+    num_x = 6
+    num_y = 8
+    width = 1332
+    height = 2048
+    wiz_size = int(min(width*0.55, height/2))
+    wiz_small_size = int(wiz_size/3.8)
+    dimensions = (width, height)
+    x_padding = 60
+    y_padding = 120
+
+    # Background
+    img_bg = Image.new("RGB", dimensions, (21,21,21))
+    grid_lines_x = 22
+    grid_cell_size = int(width / (grid_lines_x+3))
+    img_grid = grid(width+grid_cell_size, height+grid_cell_size, grid_lines_x+1, color=77)
+    img_bg.paste(img_grid, (-int(grid_cell_size/2),-int(grid_cell_size/2)), img_grid)
+
+    # Wizard
+    img_wiz = Image.open(wizard.pfp_nobg).resize((wiz_size, wiz_size), Image.NEAREST)
+    img_bg.paste(img_wiz, (int(width/2)-int(wiz_size/2), int(height/2)-int(wiz_size/2)), img_wiz)
+
+    # Border of lil' wizzies
+    def get_next_other_wiz_img():
+        return Image.open(other_wizards.pop().pfp_nobg).resize((wiz_small_size, wiz_small_size), Image.NEAREST)
+    y_spacing = int(((height-(2*y_padding))-(num_y*wiz_small_size)) / (num_y-1)) + wiz_small_size
+    row_y = y_padding
+    for row in range(num_y):
+        row_x = x_padding
+        if row == 0 or row == 7:
+            x_spacing = int(((width-(2*x_padding))-(num_x*wiz_small_size)) / (num_x-1)) + wiz_small_size
+            for x in range(num_x):
+                img_wiz_small = get_next_other_wiz_img()
+                img_bg.paste(img_wiz_small, (row_x, row_y), img_wiz_small)
+                row_x += x_spacing
+        else:
+            img_wiz_small = get_next_other_wiz_img()
+            img_bg.paste(img_wiz_small, (row_x, row_y), img_wiz_small)
+            row_x = int(width - x_padding - wiz_small_size)
+            img_wiz_small = get_next_other_wiz_img()
+            img_bg.paste(img_wiz_small, (row_x, row_y), img_wiz_small)
+        row_y += y_spacing
+
+    # Title
+    font = "resources/fonts/eight-bit-dragon.otf"
+    title = ("Anatomy of a Wizard" if not is_soul else "Anatomy of a Soul") if not is_warrior else "Anatomy of a Warrior"
+    img_text = ImageText((width, int(wiz_small_size*1.1)), background=(0, 0, 0, 0))
+    img_text.write_text_box((0, 0), title, box_width=width/2.1, font_filename=font, font_size=int(width/16), color=(255,255,255), place='center', position='middle', line_spacing=1.4)
+    img_bg.paste(img_text.image, (int(width/2-width/4.1), y_padding+wiz_small_size+x_padding) , img_text.image)
+
+    # Traits
+    def draw_trait(name, position):
+        img_text = ImageText((int(width/4), int(wiz_small_size/2)), background=(0, 0, 0, 0))
+        img_text.write_text_box((0, 0), name, box_width=width/2, font_filename=font, font_size=int(width/36), color=(255,255,255, 200), place='left')
+        img_bg.paste(img_text.image, position , img_text.image)
+    if not is_warrior:
+        draw_trait("Magical item", (x_padding+wiz_small_size+x_padding,int((height/2)-int(wiz_size/1.8))))
+        draw_trait("Head", (width-x_padding-wiz_small_size-int(wiz_small_size*1.4), int(height/2)-int(wiz_size/2)-x_padding))
+        draw_trait("Familiar", (x_padding+wiz_small_size+x_padding, int(height/2)+int(wiz_size/2.2)))
+        draw_trait("Body", (int(width/2)+x_padding, int(height/2)+int(wiz_size/2.1)))
+        draw_trait("Rune", (width-x_padding-wiz_small_size-int(wiz_small_size/1.2), int(height/2)+int(wiz_size/3)))
+    else:
+        draw_trait("Weapon", (int(width/2-(wiz_small_size/2)), int(height/2)-int(wiz_size/1.9)-x_padding))
+        draw_trait("Head", (width-x_padding-wiz_small_size-wiz_small_size, int((height/2)-(wiz_size/2))))
+        draw_trait("Companion", (x_padding+wiz_small_size+x_padding, int(height/2)+int(wiz_size/2.2)))
+        draw_trait("Body", (int(width/2)+x_padding, int(height/2)+int(wiz_size/2.1)))
+        draw_trait("Shield", (width-x_padding-wiz_small_size-int(wiz_small_size/1.2), int(height/2)+int(wiz_size/2.2)))
+        draw_trait("Rune", (x_padding+wiz_small_size+x_padding,int((height/2)-(wiz_size/2))))
+
+    # Subtitle
+    subtitle_y = int(height-(y_padding*2)-(wiz_size/2)+(x_padding/2))
+    subtitle = "Join the Cult"
+    img_text = ImageText((width, wiz_small_size), background=(0, 0, 0, 0))
+    img_text.write_text_box((0, 0), subtitle, box_width=width, font_filename=font, font_size=int(width/24), color=(255,255,255), place='center', position='middle')
+    img_bg.paste(img_text.image, (0, subtitle_y), img_text.image)
+    subtitle = "forgottenrunes.com"
+    img_text = ImageText((width, wiz_small_size), background=(0, 0, 0, 0))
+    img_text.write_text_box((0, 0), subtitle, box_width=width, font_filename=font, font_size=int(width/35), color=(255,255,255), place='center', position='middle')
+    img_bg.paste(img_text.image, (0, subtitle_y+int(width/20)), img_text.image)
+
     return img_bg
