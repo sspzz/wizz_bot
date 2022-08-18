@@ -58,7 +58,7 @@ logging.basicConfig(filename='wizz_bot.log',
 logger = logging.getLogger('wizz_bot')
 
 
-# 
+#
 # Dice
 #
 @bot.command(name="d20")
@@ -142,7 +142,6 @@ async def pony_walkcycle_soul(ctx, wiz_id, pony_id):
 	except:
 		await ctx.send("Could not mount {} to {}".format(wiz_id, pony_id))
 
-# TODO mulitple wizards walk together?
 
 #
 # Animated walk cycles
@@ -158,7 +157,7 @@ async def walkcycle(ctx, wiz_id, large, transparent, familiar=False):
 	else:
 		if familiar:
 			file = wizard.walkcycle_familiar if not transparent else wizard.walkcycle_familiar_nobg
-		else:			
+		else:
 			file = wizard.walkcycle if not transparent else wizard.walkcycle_nobg
 	if wizard is not None:
 		title = wizard.name.title() if not familiar else "{}'s Familiar".format(wizard.name.title())
@@ -187,7 +186,7 @@ async def walkcycle_familiar(ctx, wiz_id, reversed=False):
 			title = "{} with Familiar".format(wizard.name.title())
 			await DiscordUtils.embed_image(ctx, title, wizard.walkcycle_with_familiar if not reversed else wizard.walkcycle_with_familiar_reversed, "{}.gif".format(wiz_id), url=wizard.url)
 		else:
-			await ctx.send("{} does not have a familiar".format(wizard.name.title()))	
+			await ctx.send("{} does not have a familiar".format(wizard.name.title()))
 	else:
 		await ctx.send("Could not summon wizard {}".format(wiz_id))
 
@@ -225,11 +224,29 @@ async def wizard_gm(ctx, wiz_id):
 	else:
 		await ctx.send("Could not summon wizard {}".format(wiz_id))
 
+@bot.command(name="sgm")
+async def wizard_gm(ctx, wiz_id):
+	logger.info("GM %s", wiz_id)
+	wizard = WizardFactory.get_wizard(wiz_id, is_soul=True)
+	if wizard is not None:
+		await DiscordUtils.embed_image(ctx, wizard.name.title(), wizard.gm, "{}.png".format(wiz_id), url=wizard.url)
+	else:
+		await ctx.send("Could not summon soul {}".format(wiz_id))
+
+@bot.command(name="wgm")
+async def wizard_gm(ctx, token_id):
+	logger.info("GM %s", token_id)
+	warrior = WizardFactory.get_wizard(token_id, is_warrior=True)
+	if warrior is not None:
+		await DiscordUtils.embed_image(ctx, warrior.name.title(), warrior.gm, "{}.png".format(token_id), url=warrior.url)
+	else:
+		await ctx.send("Could not summon warrior {}".format(token_id))
+
 #
-# GM
+# SAY
 #
 @bot.command(name="say")
-async def wizard_gm(ctx, *, msg):
+async def wizard_say(ctx, *, msg):
 	try:
 		words = msg.split()
 		has_token_id = words[0].isnumeric()
@@ -241,6 +258,62 @@ async def wizard_gm(ctx, *, msg):
 	except:
 		await ctx.send("Could not summon wizard {}".format(wiz_id))
 
+@bot.command(name="ssay")
+async def soul_say(ctx, *, msg):
+	try:
+		words = msg.split()
+		has_token_id = words[0].isnumeric()
+		wiz_id = words[0] if has_token_id else random.choice(WizardFactory.soul_ids)
+		logger.info("SAY %s", wiz_id)
+		phrase = " ".join(words[1 if has_token_id else 0:])
+		wizard, img = WizardFactory.catchphrase(wiz_id, phrase, is_soul=True)
+		await DiscordUtils.embed_image(ctx, wizard.name.title(), img, "{}.png".format(wiz_id), url=wizard.url)
+	except:
+		await ctx.send("Could not summon soul {}".format(wiz_id))
+
+@bot.command(name="wsay")
+async def warrior_say(ctx, *, msg):
+	try:
+		words = msg.split()
+		has_token_id = words[0].isnumeric()
+		token_id = words[0] if has_token_id else random.randint(0, 16000)
+		logger.info("SAY %s", token_id)
+		phrase = " ".join(words[1 if has_token_id else 0:])
+		warrior, img = WizardFactory.catchphrase(token_id, phrase, is_warrior=True)
+		await DiscordUtils.embed_image(ctx, warrior.name.title(), img, "{}.png".format(token_id), url=warrior.url)
+	except:
+		await ctx.send("Could not summon warrior {}".format(token_id))
+
+
+#
+# POSTER
+#
+@bot.command(name="poster")
+async def wizard_poster(ctx, wiz_id):
+	try:
+		logger.info("POSTER %s", wiz_id)
+		wizard, img = WizardFactory.anatomy(wiz_id)
+		await DiscordUtils.embed_image(ctx, wizard.name.title(), img, "{}.png".format(wiz_id), url=wizard.url)
+	except:
+		await ctx.send("Could not summon wizard {}".format(wiz_id))
+
+@bot.command(name="wposter")
+async def warrior_poster(ctx, token_id):
+	try:
+		logger.info("POSTER %s", token_id)
+		warrior, img = WizardFactory.anatomy(token_id, is_warrior=True)
+		await DiscordUtils.embed_image(ctx, warrior.name.title(), img, "{}.png".format(token_id), url=warrior.url)
+	except:
+		await ctx.send("Could not summon warrior {}".format(token_id))
+
+@bot.command(name="sposter")
+async def soul_poster(ctx, token_id):
+	try:
+		logger.info("POSTER %s", token_id)
+		soul, img = WizardFactory.anatomy(token_id, is_soul=True)
+		await DiscordUtils.embed_image(ctx, soul.name.title(), img, "{}.png".format(token_id), url=soul.url)
+	except:
+		await ctx.send("Could not summon soul {}".format(token_id))
 
 #
 # RIP
@@ -264,7 +337,7 @@ async def flame(ctx):
 	file = "./resources/veil/{}".format(filename)
 	title = "Sacred Flame"
 	description = """On All Hallows Eve, 2021 the Great Burning began at The Secret Tower.
-	
+
 A Wizard and a Flame may be burned to receive a Forgotten Soul.
 
 Burning a Wizard, however, is Dark Magic which is always risky and unpredictable. If you choose to burn a Wizard, there's a chance you may receive something undesirable.
@@ -280,7 +353,7 @@ So choose wisely.
 #
 try:
 	file = open('creds.json', 'r')
-	access_token = json.load(file)['access_token']	
+	access_token = json.load(file)['access_token']
 	bot.run(access_token)
 except:
 	print("Missing or faulty creds.json")
