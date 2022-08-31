@@ -4,7 +4,14 @@ A simple Discord Bot which will, among other things, download and display artwor
 
 ## Commands
 
-- `!gm` - GM
+- `!d20` - Roll d20
+- `!dice` - Roll any-sided dice
+- `!gm` - Wizard GM
+- `!sgm` - Soul GM
+- `!wgm` - Warrior GM
+- `!say` - Wizard speech bubble
+- `!ssay` - Soul speech bubble
+- `!wsay` - Warrior speech bubble
 - `!pic` - Original wizard artwork
 - `!mug` - Mughsot of wizard (random background and frame)
 - `!walk` - Animated wizard walkcycle
@@ -14,8 +21,12 @@ A simple Discord Bot which will, among other things, download and display artwor
 - `!rip` - In memorandum
 - `!lore` - Link to wizard lore
 - `!flame` - Sacred Flame info
-- `!d20` - Roll d20
-- `!dice` - Roll any-sided dice
+- `!ponyride` - Animated wizard on pony
+- `!sponyride` - Animated soul on pony
+- `!ponywalk` - Animated pony
+- `!poster` - Wizard poster
+- `!sposter` - Soul poster
+- `!wposter` - Warrior poster
 
 
 ### 🖥 CLI
