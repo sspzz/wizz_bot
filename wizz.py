@@ -163,14 +163,16 @@ class WizardFactory:
         wizard = WizardFactory.get_wizard(token_id, is_soul=is_soul, is_warrior=is_warrior)
         others = []
         for i in range(25):
-            others.append(WizardFactory.random_cached_wizard(is_soul=is_soul, is_warrior=is_warrior))
+            ignore = others.copy()
+            ignore.append(token_id)
+            others.append(WizardFactory.random_cached_wizard(is_soul=is_soul, is_warrior=is_warrior, ignore=ignore))
         img = imagetools.poster(wizard, others, is_warrior=is_warrior, is_soul=is_soul)
         return (wizard, imagetools.to_png(img))
 
     @staticmethod
-    def random_cached_wizard(is_soul=False, is_warrior=False):
+    def random_cached_wizard(is_soul=False, is_warrior=False, ignore=[]):
         path_artwork = "{}/artwork/{}".format(os.getcwd(), "souls" if is_soul else "warriors" if is_warrior else "wizards")
-        token_id = random.choice([f for f in sorted(os.listdir(path_artwork)) if not f.startswith('.')])
+        token_id = random.choice([f for f in sorted(os.listdir(path_artwork)) if not f.startswith('.') and f not in ignore])
         return Wizard(token_id, path_artwork)
 
     @staticmethod

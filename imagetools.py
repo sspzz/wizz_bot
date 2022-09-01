@@ -239,6 +239,7 @@ def mugshot(wizard):
     bg = Image.open("{}/resources/mugshot/bg/{}".format(os.getcwd(), random.choice(all_png("resources/mugshot/bg"))))
     fg = Image.open("{}/resources/mugshot/frame/{}".format(os.getcwd(), random.choice(all_png("resources/mugshot/frame"))))
     head = Image.new("RGBA", (50,50), (0,0,0,255))
+    body = Image.new("RGBA", (50,50), (0,0,0,255))
     for filename in all_png(wizard.base_assets_path):
         if filename.startswith("head"):
             head = Image.open("{}/{}".format(wizard.base_assets_path, filename))

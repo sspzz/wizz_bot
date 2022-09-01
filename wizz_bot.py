@@ -8,6 +8,9 @@ import opensea
 from random import randrange
 from functools import reduce
 import random
+from forge import WeaponForge
+import asyncio
+
 
 # Utilities related to Discord
 class DiscordUtils:
@@ -21,8 +24,8 @@ class DiscordUtils:
 		await ctx.send(embed=embed)
 
 	@staticmethod
-	async def embed_image(ctx, title, file, filename, description=None, footer=None, url=None):
-		embed = discord.Embed(title=title)
+	async def embed_image(ctx, title, file, filename, description=None, footer=None, url=None, fields=None, color=discord.Embed.Empty, thumbnail=None):
+		embed = discord.Embed(title=title, color=color)
 		file = discord.File(file, filename=filename)
 		embed.set_image(url="attachment://{}".format(filename))
 		if description is not None:
@@ -31,6 +34,11 @@ class DiscordUtils:
 			embed.set_footer(text=footer)
 		if url is not None:
 			embed.url = url
+		if fields is not None:
+			for field in fields:
+				embed.add_field(name=field[0], value=field[1], inline=False)
+		if thumbnail is not None:
+			embed.set_thumbnail(url=thumbnail)
 		await ctx.send(file=file, embed=embed)
 
 	@staticmethod
@@ -52,7 +60,7 @@ bot = commands.Bot(command_prefix="!")
 
 logging.basicConfig(filename='wizz_bot.log',
                     filemode='a',
-                    format='[%(asctime)s] %(name)s - %(message)s',
+                    format='[%(asctime)s] %(levelname)s\t%(name)s - %(message)s',
                     datefmt='%d-%m-%Y @ %H:%M:%S',
                     level=logging.INFO)
 logger = logging.getLogger('wizz_bot')
@@ -349,11 +357,57 @@ So choose wisely.
 
 
 #
-# Run bot
+# Wrapper for our bot, used by Forge to callback
 #
-try:
-	file = open('creds.json', 'r')
-	access_token = json.load(file)['access_token']
-	bot.run(access_token)
-except:
-	print("Missing or faulty creds.json")
+class BotWrapper(object):
+	def __init__(self, bot):
+		self.bot = bot
+
+	def on_warrior_weapon_forged(self, token_id, lock_id):
+		fut = asyncio.run_coroutine_threadsafe(self.__on_warrior_weapon_forged(token_id, lock_id), bot.loop)
+		fut.result()
+
+	async def __on_warrior_weapon_forged(self, token_id, lock_id):
+		logger.info("FORGED %s", token_id)
+		try:
+			await bot.wait_until_ready()
+			lock_url = WeaponForge.Router.lock_url(lock_id)
+			warrior_file = WeaponForge.get_warrior(token_id)
+			warrior_meta = WeaponForge.get_warrior_meta(token_id)
+			warrior_attributes = warrior_meta['attributes']
+			warrior_name = warrior_meta['name']
+			warrior_weapon = next(filter(lambda a: a['trait_type'] == 'weapon', warrior_attributes))['value']
+			warrior_forged_with = next(filter(lambda a: a['trait_type'] == 'forged_with', warrior_attributes))['value']
+			fields = []
+			fields.append(("Weapon", warrior_weapon))
+			fields.append(("Forged with", warrior_forged_with))
+			fields.append(("Warrior", "[{}]({})".format(warrior_name, "https://opensea.io/assets/ethereum/0x9690b63eb85467be5267a3603f770589ab12dc95/{}".format(token_id))))
+			# burn chat 903730142155788388
+			# wenmoon 437876896664125443
+			channel = bot.get_channel(437876896664125443)
+			await DiscordUtils.embed_image(channel, "A Weapon has been Forged!", warrior_file, warrior_file.split('/')[-1], fields=fields, color=discord.Colour.gold(), thumbnail=lock_url)
+		except Exception as e:
+			logger.error(e)
+
+def main():
+	#
+	# Observers
+	#
+	try:
+		obvs = WeaponForge.Observer(BotWrapper(bot))
+		obvs.start_worker()
+	except:
+		print("Could not start WeaponForge.Observer")
+
+	#
+	# Run bot
+	#
+	try:
+		file = open('creds.json', 'r')
+		access_token = json.load(file)['access_token']
+		bot.run(access_token)
+	except:
+		print("Missing or faulty creds.json")
+
+if __name__ == '__main__':
+    main()
