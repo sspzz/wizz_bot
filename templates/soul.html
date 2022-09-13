@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{name}}</title>
+</head>
+<body>
+    <h1>{{name}} resources:</h1>
+    <ul>
+      <li><a href="{{ url_for(request.endpoint, **request.view_args) }}/poster">Generate Poster</a></li>
+      <li><a href="{{ url_for(request.endpoint, **request.view_args) }}/mugshot">Generate Mughshot</a></li>
+    </ul>
+</body>
+</html>

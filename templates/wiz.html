@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{name}}</title>
+</head>
+<body>
+    <h1>{{name}} resources:</h1>
+    <ul>
+      <li><a href="{{ url_for(request.endpoint, **request.view_args) }}/poster">Generate Poster</a></li>
+      <li><a href="{{ url_for(request.endpoint, **request.view_args) }}/mugshot">Generate Mughshot</a></li>
+      <li><a href="{{ url_for(request.endpoint, **request.view_args) }}/gm">View GM</a></li>
+      <li><a href="{{ url_for(request.endpoint, **request.view_args) }}/walkcycle">View Walkcycle</a></li>
+      <li><a href="{{ url_for(request.endpoint, **request.view_args) }}/walkfam">View Walkcycle with Familiar (Right)</a></li>
+      <li><a href="{{ url_for(request.endpoint, **request.view_args) }}/walkfamr">View Walkcycle with Familiar (Left)</a></li>
+      <li><a href="{{ url_for(request.endpoint, **request.view_args) }}/familiar">View Familiar Walkcycle</a></li>
+      <li><a href="{{ url_for(request.endpoint, **request.view_args) }}/rip">View R.I.P.</a></li>
+    </ul>
+</body>
+</html>
