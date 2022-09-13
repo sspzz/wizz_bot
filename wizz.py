@@ -26,6 +26,11 @@ class Wizard(object):
         self.artwork_root = artwork_root
         self.base_dimension = base_dimension
 
+    def __eq__(self, other):
+        if isinstance(other, Wizard):
+            return self.token_id == other.token_id
+        return False
+
     def get_pony(self, pony_id):
         try:
             endpoint = "https://www.forgottenrunes.com/api/art/wizards/{}/riding/pony/{}".format(self.token_id, pony_id)
@@ -163,36 +168,50 @@ class WizardFactory:
         wizard = WizardFactory.get_wizard(token_id, is_soul=is_soul, is_warrior=is_warrior)
         others = []
         for i in range(25):
-            others.append(WizardFactory.random_cached_wizard(is_soul=is_soul, is_warrior=is_warrior))
+            ignore = list(map(lambda w: w.token_id, others.copy()))
+            ignore.append(wizard.token_id)
+            other = WizardFactory.random_cached_wizard(is_soul=is_soul, is_warrior=is_warrior, ignore=ignore)
+            def random_id():
+                if is_soul:
+                    return random.choice(list(filter(lambda id: id not in ignore, soul_ids)))
+                elif is_warrior:
+                    return random.randint(0, 15999)
+                else:
+                    return random.randint(0, 9999)
+            others.append(other if other is not None else WizardFactory.get_wizard(random_id(), is_soul=is_soul, is_warrior=is_warrior))
         img = imagetools.poster(wizard, others, is_warrior=is_warrior, is_soul=is_soul)
         return (wizard, imagetools.to_png(img))
 
     @staticmethod
-    def random_cached_wizard(is_soul=False, is_warrior=False):
+    def random_cached_wizard(is_soul=False, is_warrior=False, ignore=[]):
         path_artwork = "{}/artwork/{}".format(os.getcwd(), "souls" if is_soul else "warriors" if is_warrior else "wizards")
-        token_id = random.choice([f for f in sorted(os.listdir(path_artwork)) if not f.startswith('.')])
-        return Wizard(token_id, path_artwork)
+        available = [f for f in sorted(os.listdir(path_artwork)) if not f.startswith('.') and int(f) not in ignore]
+        if len(available) > 0:
+            return Wizard(int(random.choice(available)), path_artwork)
+        else:
+            return None
 
     @staticmethod
     def get_wizard(token_id, refresh=False, is_soul=False, is_warrior=False):
+        token_id = int(token_id)
+
         if is_soul and not soul_exists(token_id):
             return None
 
         path_artwork = "{}/artwork/{}".format(os.getcwd(), "souls" if is_soul else "warriors" if is_warrior else "wizards")
-        try:
-            os.makedirs(path_artwork)
-        except:
-            pass
+        os.makedirs(path_artwork, exist_ok=True)
 
         wizard = Wizard(token_id, path_artwork, 60 if is_warrior else 50)
 
         def download_content():
             # Check cache if we don't want to force download
+            def listdirs(folder):
+                return [d for d in os.listdir(folder) if os.path.isdir(os.path.join(folder, d))]
             if not refresh:
-                cached_wizards = os.listdir(path_artwork)
+                cached_wizards = listdirs(path_artwork)
                 cached_wizard_path = None
                 for wiz_dir in cached_wizards:
-                    if wiz_dir == token_id:
+                    if int(wiz_dir) == token_id:
                         cached_wizard_path = wizard.path
             else:
                 cached_wizard_path = None
