@@ -9,6 +9,11 @@ import requests
 import os
 
 
+use_testnet = True
+api_base = 'https://quantum-portal-git-goerli-forgottenrunes.vercel.app' if use_testnet else 'https://portal.forgottenrunes.com'
+eth_network = "goerli" if use_testnet else "mainnet"
+
+
 class WebClient(object):
     @staticmethod
     def download(url, target, cache=True):
@@ -26,11 +31,8 @@ class WebClient(object):
             try:
                 return json.loads(response.read())
             except:
-                return None
+                    return None
 
-
-use_testnet = True
-api_base = 'TODO' if use_testnet else 'https://portal.forgottenrunes.com'
 
 class WeaponForge(object):
     class Router(object):
@@ -57,12 +59,13 @@ class WeaponForge(object):
 
     @staticmethod
     def get_warrior(token_id, refresh=False):
-        target = "{}/artwork/warriors/forged-weapons/{}.gif".format(os.getcwd(), token_id)
-        return WebClient.download(WeaponForge.Router.warrior_url(token_id), target)
+        if WeaponForge.get_forged_weapon(token_id) is not None:
+            target = "{}/artwork/warriors-forge/{}.gif".format(os.getcwd(), token_id)
+            return WebClient.download(WeaponForge.Router.warrior_url(token_id), target)
 
     @staticmethod
     def get_forged_weapon(token_id, refresh=False):
-        target = "{}/artwork/warriors/forged-weapons/{}-weapon.gif".format(os.getcwd(), token_id)
+        target = "{}/artwork/warriors-forge/{}-weapon.gif".format(os.getcwd(), token_id)
         return WebClient.download(WeaponForge.Router.weapon_url(token_id), target)
 
     @staticmethod
@@ -100,11 +103,11 @@ class WeaponForge(object):
             }
         ]
         """
-        contract = '0xfBA35cec34BAF299B693f86D9eb851BcCBf34D29' if use_testnet else 'TODO'
+        contract = '0xfBA35cec34BAF299B693f86D9eb851BcCBf34D29' if use_testnet else '0x2AA0Ad11Ab37d93f1189b2c5Ac2285AC8f6D4b68'
 
         def __init__(self, bot):
             self.bot = bot
-            self.w3 = Web3(Web3.HTTPProvider('https://{}.infura.io/v3/84cf06de26f042d3be02fd0ee1cc7ba6'.format("goerli" if use_testnet else "mainnet")))
+            self.w3 = Web3(Web3.HTTPProvider('https://{}.infura.io/v3/84cf06de26f042d3be02fd0ee1cc7ba6'.format(eth_network)))
             self.forgeContract = self.w3.eth.contract(address=WeaponForge.Observer.contract, abi=json.loads(WeaponForge.Observer.abi_json))
             self.worker = None
 
@@ -116,12 +119,12 @@ class WeaponForge(object):
                     self.bot.on_warrior_weapon_forged(token_id, lock_id)
                 else:
                     print("Forge event: Warrior #{}, Lock #{}".format(token_id, lock_id))
-            except:
-                pass
+            except Exception as e:
+                print(e)
 
-        def log_loop(self, event_filter, poll_interval):
+        def log_loop(self, event_filter, poll_interval, check_history):
             # get old events if we're testing
-            if use_testnet:
+            if check_history:
                 for event in event_filter.get_all_entries():
                     self.handle_event(event)
             while True:
@@ -132,7 +135,7 @@ class WeaponForge(object):
         def start_worker(self):
             if self.worker is None:
                 block_filter = self.forgeContract.events.WarriorWeaponForged.createFilter(fromBlock=0 if use_testnet else 'latest', toBlock='latest')
-                self.worker = Thread(target=WeaponForge.Observer.log_loop, args=(self, block_filter, 5), daemon=True)
+                self.worker = Thread(target=WeaponForge.Observer.log_loop, args=(self, block_filter, 10, use_testnet), daemon=True)
                 self.worker.start()
             else:
                 print("Attempting to start worker that is already running, ignored.")

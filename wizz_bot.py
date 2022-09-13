@@ -382,9 +382,9 @@ class BotWrapper(object):
 			fields.append(("Weapon", warrior_weapon))
 			fields.append(("Forged with", warrior_forged_with))
 			fields.append(("Warrior", "[{}]({})".format(warrior_name, "https://opensea.io/assets/ethereum/0x9690b63eb85467be5267a3603f770589ab12dc95/{}".format(token_id))))
-			# burn chat 903730142155788388
-			# wenmoon 437876896664125443
-			channel = bot.get_channel(437876896664125443)
+			# burn-chat: 903730142155788388
+			# test-chat: 437876896664125443
+			channel = bot.get_channel(903730142155788388)
 			await DiscordUtils.embed_image(channel, "A Weapon has been Forged!", warrior_file, warrior_file.split('/')[-1], fields=fields, color=discord.Colour.gold(), thumbnail=lock_url)
 		except Exception as e:
 			logger.error(e)
