@@ -1,6 +1,6 @@
 from flask import Flask
 from flask import request
-from flask import send_from_directory, send_file, render_template
+from flask import send_from_directory, send_file, render_template, redirect, url_for
 from wizz import WizardFactory
 import random
 import os
@@ -10,6 +10,21 @@ app = Flask(__name__)
 def _send(file):
 	np = os.path.normpath(file)
 	return send_from_directory(os.path.join(app.root_path, os.path.dirname(np)), os.path.basename(np))
+
+
+#
+# Root
+#
+@app.route('/', methods=['POST', 'GET'])
+def root():
+	if request.form:
+		token_id = request.form['token_id']
+		token_type = request.form['token_type']
+		return redirect(url_for("{}_root".format(token_type), token_id=token_id))
+	else:
+		return render_template('root.html')
+
+
 #
 # Wizards
 #

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WizzBot API</title>
+</head>
+<body>
+    <h1>WizzBot API</h1>
+    <p>Access assets from Wizards, Warrior and Souls assets!</p>
+    <form method="POST">
+      <select id="token_type", name="token_type">
+        {% for x in ['wizard', 'soul', 'warrior'] %}
+        <option value="{{ x }}">{{ x }}</option>
+        {% endfor %}
+      </select>
+      <input type="text" name="token_id" value="0">
+      <input name="text" type="submit" value="Go!">
+    </form>
+    <h2>Examples:</h2>
+    <ul>
+      <li><a href="{{ url_for('wizard_root', token_id=8679) }}">/wizards/8679</a> shows assets for Sorcerer Ilyas of the Fey (Wizard)</li>
+      <li><a href="{{ url_for('warrior_root', token_id=15503) }}">/warriors/15503</a> shows assets for Magnus Arbiter of Just Cause (Warrior)</li>
+      <li><a href="{{ url_for('soul_root', token_id=9705) }}">/souls/9705</a> shows assets for Lich Duke Thor of the River Styxx (Soul)</li>
+    </ul>
+</body>
+</html>
