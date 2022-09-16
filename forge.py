@@ -9,7 +9,7 @@ import requests
 import os
 
 
-use_testnet = True
+use_testnet = False
 api_base = 'https://quantum-portal-git-goerli-forgottenrunes.vercel.app' if use_testnet else 'https://portal.forgottenrunes.com'
 eth_network = "goerli" if use_testnet else "mainnet"
 
@@ -59,9 +59,9 @@ class WeaponForge(object):
 
     @staticmethod
     def get_warrior(token_id, refresh=False):
-        if WeaponForge.get_forged_weapon(token_id) is not None:
-            target = "{}/artwork/warriors-forge/{}.gif".format(os.getcwd(), token_id)
-            return WebClient.download(WeaponForge.Router.warrior_url(token_id), target)
+        # if WeaponForge.get_forged_weapon(token_id) is not None:
+        target = "{}/artwork/warriors-forge/{}.gif".format(os.getcwd(), token_id)
+        return WebClient.download(WeaponForge.Router.warrior_url(token_id), target)
 
     @staticmethod
     def get_forged_weapon(token_id, refresh=False):
