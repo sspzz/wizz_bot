@@ -402,6 +402,8 @@ class BotWrapper(object):
 			fp_meta = ForgottenPunks.get_meta(token_id)
 			attributes = fp_meta['attributes']
 			name = fp_meta['name']
+			title = "{} has been minted!".format(name)
+			url = "https://opensea.io/assets/ethereum/0x4adDAc15971AB60Ead954B8F15a67518730450e0/{}".format(token_id)
 			head = next(filter(lambda a: a['trait_type'] == 'Head', attributes))['value']
 			bg = next(filter(lambda a: a['trait_type'] == 'Background', attributes))['value']
 			att = next(filter(lambda a: a['trait_type'] == 'Attachment', attributes))
@@ -417,10 +419,8 @@ class BotWrapper(object):
 			# test-chat: 437876896664125443
 			post_in_channels = [863044365299220511, 1027916767609233420]
 			# post_in_channels = [437876896664125443]
-			channel = bot.get_channel(437876896664125443)
-			title = "{} has been minted!".format(name)
-			url = "https://opensea.io/assets/ethereum/0x4adDAc15971AB60Ead954B8F15a67518730450e0/{}".format(token_id)
-			await DiscordUtils.embed_image(channel, title, fp_file, fp_file.split('/')[-1], fields=fields, color=discord.Colour.purple(), url=url)
+			for channel in post_in_channels:
+				await DiscordUtils.embed_image(channel, title, fp_file, fp_file.split('/')[-1], fields=fields, color=discord.Colour.purple(), url=url)
 		except Exception as e:
 			logger.error(e)
 
