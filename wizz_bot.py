@@ -415,8 +415,8 @@ class BotWrapper(object):
 			# sales-chat: 863044365299220511
 			# fp general: 1027916767609233420
 			# test-chat: 437876896664125443
-			# post_in_channels = [863044365299220511, 1027916767609233420]
-			post_in_channels = [437876896664125443]
+			post_in_channels = [863044365299220511, 1027916767609233420]
+			# post_in_channels = [437876896664125443]
 			channel = bot.get_channel(437876896664125443)
 			title = "{} has been minted!".format(name)
 			url = "https://opensea.io/assets/ethereum/0x4adDAc15971AB60Ead954B8F15a67518730450e0/{}".format(token_id)
