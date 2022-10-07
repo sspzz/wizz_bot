@@ -123,14 +123,23 @@ class WeaponForge(object):
                 print(e)
 
         def log_loop(self, event_filter, poll_interval, check_history):
-            # get old events if we're testing
-            if check_history:
-                for event in event_filter.get_all_entries():
-                    self.handle_event(event)
-            while True:
-                for event in event_filter.get_new_entries():
-                    self.handle_event(event)
-                time.sleep(poll_interval)
+            try:
+                # get old events if we're testing
+                if check_history:
+                    try:
+                        for event in event_filter.get_all_entries():
+                            self.handle_event(event)
+                    except:
+                        pass
+                while True:
+                    try:
+                        for event in event_filter.get_new_entries():
+                            self.handle_event(event)
+                    except:
+                        pass
+                    time.sleep(poll_interval)
+            except:
+                pass
 
         def start_worker(self):
             if self.worker is None:
