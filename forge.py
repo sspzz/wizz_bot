@@ -126,11 +126,17 @@ class WeaponForge(object):
             try:
                 # get old events if we're testing
                 if check_history:
-                    for event in event_filter.get_all_entries():
-                        self.handle_event(event)
+                    try:
+                        for event in event_filter.get_all_entries():
+                            self.handle_event(event)
+                    except:
+                        pass
                 while True:
-                    for event in event_filter.get_new_entries():
-                        self.handle_event(event)
+                    try:
+                        for event in event_filter.get_new_entries():
+                            self.handle_event(event)
+                    except:
+                        pass
                     time.sleep(poll_interval)
             except:
                 pass

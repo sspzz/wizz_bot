@@ -1,3 +1,4 @@
+from punks import ForgottenPunks
 from wizz import WizardFactory
 import json
 from discord.ext import commands
@@ -389,6 +390,41 @@ class BotWrapper(object):
 		except Exception as e:
 			logger.error(e)
 
+	def on_forgottenpunk_minted(self, token_id, minter_addr):
+		fut = asyncio.run_coroutine_threadsafe(self.__on_on_forgottenpunk_minted(token_id, minter_addr), bot.loop)
+		fut.result()
+
+	async def __on_on_forgottenpunk_minted(self, token_id, minter_addr):
+		logger.info("FORGED %s", token_id)
+		try:
+			await bot.wait_until_ready()
+			fp_file = ForgottenPunks.get_image(token_id)
+			fp_meta = ForgottenPunks.get_meta(token_id)
+			attributes = fp_meta['attributes']
+			name = fp_meta['name']
+			head = next(filter(lambda a: a['trait_type'] == 'Head', attributes))['value']
+			bg = next(filter(lambda a: a['trait_type'] == 'Background', attributes))['value']
+			att = next(filter(lambda a: a['trait_type'] == 'Attachment', attributes))
+			fields = []
+			fields.append(("Head", head))
+			try:
+				fields.append(("Attachment", att['value']))
+			except:
+				pass
+			fields.append(("Background", bg))
+			# sales-chat: 863044365299220511
+			# fp general: 1027916767609233420
+			# test-chat: 437876896664125443
+			# post_in_channels = [863044365299220511, 1027916767609233420]
+			post_in_channels = [437876896664125443]
+			channel = bot.get_channel(437876896664125443)
+			title = "{} has been minted!".format(name)
+			url = "https://opensea.io/assets/ethereum/0x4adDAc15971AB60Ead954B8F15a67518730450e0/{}".format(token_id)
+			await DiscordUtils.embed_image(channel, title, fp_file, fp_file.split('/')[-1], fields=fields, color=discord.Colour.purple(), url=url)
+		except Exception as e:
+			logger.error(e)
+
+
 def main():
 	#
 	# Observers
@@ -398,6 +434,12 @@ def main():
 		obvs.start_worker()
 	except:
 		print("Could not start WeaponForge.Observer")
+
+	try:
+		obvs = ForgottenPunks.Observer(BotWrapper(bot))
+		obvs.start_worker()
+	except:
+		print("Could not start ForgottenPunks.Observer")
 
 	#
 	# Run bot
