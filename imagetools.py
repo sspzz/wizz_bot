@@ -285,7 +285,7 @@ def rip(wizard, size=(520, 520), offset=(42, 34)):
             wiz_prop = desaturate(wiz_prop)
     fp_bg.paste(wiz_body, offset, wiz_body)
     if wiz_prop is not None:
-    	fp_bg.paste(wiz_prop, offset, wiz_prop)
+      fp_bg.paste(wiz_prop, offset, wiz_prop)
     if wiz_head is not None:
         fp_bg.paste(wiz_head, offset, wiz_head)
     fp_bg.paste(fp_frame, (0, 0), fp_frame)

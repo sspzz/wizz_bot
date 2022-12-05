@@ -183,6 +183,23 @@ async def wizard_walkcycle(ctx, wiz_id):
 async def wizard_walkcycle_large_nobg(ctx, wiz_id):
 	await walkcycle(ctx, wiz_id, large=True, transparent=True)
 
+@bot.command(name="wwalk", aliases=["wwc", "wgif"])
+async def warrior_walkcycle(ctx, wiz_id):
+	await walkcycle(ctx, wiz_id, large=True, transparent=False)
+
+@bot.command(name="twwalk", aliases=["twwc", "twgif"])
+async def warrior_walkcycle_large_nobg(ctx, wiz_id):
+	await walkcycle(ctx, wiz_id, large=True, transparent=True)
+
+@bot.command(name="swalk", aliases=["swc", "sgif"])
+async def soul_walkcycle(ctx, wiz_id):
+	await walkcycle(ctx, wiz_id, large=True, transparent=False)
+
+@bot.command(name="tswalk", aliases=["tswc", "tsgif"])
+async def soul_walkcycle_large_nobg(ctx, wiz_id):
+	await walkcycle(ctx, wiz_id, large=True, transparent=True)
+
+
 @bot.command(name="walkfam", aliases=["wcf", "giff"])
 async def wizard_walkcycle_familiar(ctx, wiz_id):
 	await walkcycle(ctx, wiz_id, large=True, transparent=False, familiar=True)
@@ -417,10 +434,10 @@ class BotWrapper(object):
 			# sales-chat: 863044365299220511
 			# fp general: 1027916767609233420
 			# test-chat: 437876896664125443
-			post_in_channels = [863044365299220511, 1027916767609233420]
+			post_in_channels = [1027916767609233420]
 			# post_in_channels = [437876896664125443]
 			for channel in post_in_channels:
-				await DiscordUtils.embed_image(channel, title, fp_file, fp_file.split('/')[-1], fields=fields, color=discord.Colour.purple(), url=url)
+				await DiscordUtils.embed_image(bot.get_channel(channel), title, fp_file, fp_file.split('/')[-1], fields=fields, color=discord.Colour.purple(), url=url)
 		except Exception as e:
 			logger.error(e)
 
@@ -435,11 +452,11 @@ def main():
 	except:
 		print("Could not start WeaponForge.Observer")
 
-	try:
-		obvs = ForgottenPunks.Observer(BotWrapper(bot))
-		obvs.start_worker()
-	except:
-		print("Could not start ForgottenPunks.Observer")
+	# try:
+	# 	obvs = ForgottenPunks.Observer(BotWrapper(bot))
+	# 	obvs.start_worker()
+	# except:
+	# 	print("Could not start ForgottenPunks.Observer")
 
 	#
 	# Run bot

@@ -21,19 +21,25 @@ def soul_exists(token_id):
     return int(token_id) in soul_ids
 
 class Wizard(object):
-    def __init__(self, token_id, artwork_root, base_dimension=50):
+    def __init__(self, token_id, artwork_root, base_dimension=50, is_soul=False, is_warrior=False):
         self.token_id = token_id
         self.artwork_root = artwork_root
         self.base_dimension = base_dimension
+        self.is_soul = is_soul
+        self.is_warrior = is_warrior
 
     def __eq__(self, other):
         if isinstance(other, Wizard):
             return self.token_id == other.token_id
         return False
 
+    @property
+    def slug(self):
+      return "souls" if self.is_soul else "warriors" if self.is_warrior else "wizards"
+
     def get_pony(self, pony_id):
         try:
-            endpoint = "https://www.forgottenrunes.com/api/art/wizards/{}/riding/pony/{}".format(self.token_id, pony_id)
+            endpoint = "https://www.forgottenrunes.com/api/art/{}/{}/riding/pony/{}".format(self.slug, self.token_id, pony_id)
             urllib.request.urlretrieve(endpoint, self.pony)
             return True
         except:
@@ -61,10 +67,6 @@ class Wizard(object):
         return "{}/{}".format(self.path, self.base_dimension)
 
     @property
-    def is_warrior(self):
-        return self.base_dimension == 60
-
-    @property
     def pfp(self):
         return "{}/{}.png".format(self.path, self.token_id)
 
@@ -86,7 +88,7 @@ class Wizard(object):
 
     @property
     def spritesheet(self):
-        return "{}/50/spritesheet/wizards-{}.png".format(self.path, self.token_id)
+        return "{}/{}/spritesheet/{}-{}.png".format(self.path, self.base_dimension, self.slug, self.token_id)
 
     @property
     def walkcycle(self):
@@ -201,7 +203,7 @@ class WizardFactory:
         path_artwork = "{}/artwork/{}".format(os.getcwd(), "souls" if is_soul else "warriors" if is_warrior else "wizards")
         os.makedirs(path_artwork, exist_ok=True)
 
-        wizard = Wizard(token_id, path_artwork, 60 if is_warrior else 50)
+        wizard = Wizard(token_id, path_artwork, 60 if is_warrior else 50, is_soul, is_warrior)
 
         def download_content():
             # Check cache if we don't want to force download
@@ -241,13 +243,13 @@ class WizardFactory:
 
             # Generate content
             if not is_soul and not is_warrior:
-                imagetools.walkcycle(wizard)
                 imagetools.walkcycle_familiar(wizard)
                 imagetools.walkcycle_wizard_and_familiar(wizard)
                 imagetools.rip(wizard)
             if not is_warrior:
                 imagetools.mugshot(wizard)
             imagetools.gm(wizard)
+            imagetools.walkcycle(wizard)
 
         except Exception as e:
             print("Error summoning {}: {}".format(token_id, str(e)))
