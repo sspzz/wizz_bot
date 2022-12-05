@@ -155,9 +155,9 @@ async def pony_walkcycle_soul(ctx, wiz_id, pony_id):
 #
 # Animated walk cycles
 #
-async def walkcycle(ctx, wiz_id, large, transparent, familiar=False):
+async def walkcycle(ctx, wiz_id, large, transparent, familiar=False, is_soul=False, is_warrior=False):
 	logger.info("WALKCYCLE %s", wiz_id)
-	wizard = WizardFactory.get_wizard(wiz_id)
+	wizard = WizardFactory.get_wizard(wiz_id, is_soul=is_soul, is_warrior=is_warrior)
 	if large:
 		if familiar:
 			file = wizard.walkcycle_familiar_large if not transparent else wizard.walkcycle_familiar_large_nobg
@@ -185,19 +185,19 @@ async def wizard_walkcycle_large_nobg(ctx, wiz_id):
 
 @bot.command(name="wwalk", aliases=["wwc", "wgif"])
 async def warrior_walkcycle(ctx, wiz_id):
-	await walkcycle(ctx, wiz_id, large=True, transparent=False)
+	await walkcycle(ctx, wiz_id, large=True, transparent=False, is_warrior=True)
 
 @bot.command(name="twwalk", aliases=["twwc", "twgif"])
 async def warrior_walkcycle_large_nobg(ctx, wiz_id):
-	await walkcycle(ctx, wiz_id, large=True, transparent=True)
+	await walkcycle(ctx, wiz_id, large=True, transparent=True, is_warrior=True)
 
 @bot.command(name="swalk", aliases=["swc", "sgif"])
 async def soul_walkcycle(ctx, wiz_id):
-	await walkcycle(ctx, wiz_id, large=True, transparent=False)
+	await walkcycle(ctx, wiz_id, large=True, transparent=False, is_soul=True)
 
 @bot.command(name="tswalk", aliases=["tswc", "tsgif"])
 async def soul_walkcycle_large_nobg(ctx, wiz_id):
-	await walkcycle(ctx, wiz_id, large=True, transparent=True)
+	await walkcycle(ctx, wiz_id, large=True, transparent=True, is_soul=True)
 
 
 @bot.command(name="walkfam", aliases=["wcf", "giff"])
