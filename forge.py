@@ -45,6 +45,10 @@ class WeaponForge(object):
             return "{}/api/locks/img/{}".format('https://portal.forgottenrunes.com', token_id)
 
         @staticmethod
+        def treat_url(token_id):
+            return "{}/api/treats/img/{}".format('https://portal.forgottenrunes.com', token_id)
+
+        @staticmethod
         def warrior_url(token_id):
             return "{}/api/warriors/img/{}".format(api_base, token_id)
 
@@ -143,8 +147,8 @@ class WeaponForge(object):
 
         def start_worker(self):
             if self.worker is None:
-                block_filter = self.forgeContract.events.WarriorWeaponForged.createFilter(fromBlock=0 if use_testnet else 'latest', toBlock='latest')
-                self.worker = Thread(target=WeaponForge.Observer.log_loop, args=(self, block_filter, 10, use_testnet), daemon=True)
+                block_filter = self.forgeContract.events.WarriorWeaponForged.createFilter(fromBlock=0 if use_testnet else 16176368, toBlock='latest')
+                self.worker = Thread(target=WeaponForge.Observer.log_loop, args=(self, block_filter, 10, True), daemon=True)
                 self.worker.start()
             else:
                 print("Attempting to start worker that is already running, ignored.")

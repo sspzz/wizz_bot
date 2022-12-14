@@ -1,11 +1,9 @@
-from punks import ForgottenPunks
 from wizz import WizardFactory
 import json
 from discord.ext import commands
 import discord
 import logging
 import logging.config
-import opensea
 from random import randrange
 from functools import reduce
 import random
@@ -25,7 +23,7 @@ class DiscordUtils:
 		await ctx.send(embed=embed)
 
 	@staticmethod
-	async def embed_image(ctx, title, file, filename, description=None, footer=None, url=None, fields=None, color=discord.Embed.Empty, thumbnail=None):
+	async def embed_image(ctx, title, file, filename, description=None, footer=None, url=None, fields=None, color=None, thumbnail=None):
 		embed = discord.Embed(title=title, color=color)
 		file = discord.File(file, filename=filename)
 		embed.set_image(url="attachment://{}".format(filename))
@@ -57,7 +55,10 @@ class DiscordUtils:
 #
 # Setup
 #
-bot = commands.Bot(command_prefix="!")
+intents = discord.Intents.default()
+intents.message_content = True
+intents.messages = True
+bot = commands.Bot(command_prefix="!", intents=intents)
 
 logging.basicConfig(filename='wizz_bot.log',
                     filemode='a',
@@ -385,59 +386,25 @@ class BotWrapper(object):
 		fut = asyncio.run_coroutine_threadsafe(self.__on_warrior_weapon_forged(token_id, lock_id), bot.loop)
 		fut.result()
 
-	async def __on_warrior_weapon_forged(self, token_id, lock_id):
+	async def __on_warrior_weapon_forged(self, token_id, item_id):
 		logger.info("FORGED %s", token_id)
 		try:
 			await bot.wait_until_ready()
-			lock_url = WeaponForge.Router.lock_url(lock_id)
 			warrior_file = WeaponForge.get_warrior(token_id)
 			warrior_meta = WeaponForge.get_warrior_meta(token_id)
 			warrior_attributes = warrior_meta['attributes']
 			warrior_name = warrior_meta['name']
 			warrior_weapon = next(filter(lambda a: a['trait_type'] == 'weapon', warrior_attributes))['value']
 			warrior_forged_with = next(filter(lambda a: a['trait_type'] == 'forged_with', warrior_attributes))['value']
+			forged_with_url = WeaponForge.Router.treat_url(item_id) if warrior_forged_with == "Gold Nugget" else WeaponForge.Router.lock_url(item_id)
 			fields = []
 			fields.append(("Weapon", warrior_weapon))
 			fields.append(("Forged with", warrior_forged_with))
 			fields.append(("Warrior", "[{}]({})".format(warrior_name, "https://opensea.io/assets/ethereum/0x9690b63eb85467be5267a3603f770589ab12dc95/{}".format(token_id))))
 			# burn-chat: 903730142155788388
 			# test-chat: 437876896664125443
-			channel = bot.get_channel(903730142155788388)
-			await DiscordUtils.embed_image(channel, "A Weapon has been Forged!", warrior_file, warrior_file.split('/')[-1], fields=fields, color=discord.Colour.gold(), thumbnail=lock_url)
-		except Exception as e:
-			logger.error(e)
-
-	def on_forgottenpunk_minted(self, token_id, minter_addr):
-		fut = asyncio.run_coroutine_threadsafe(self.__on_on_forgottenpunk_minted(token_id, minter_addr), bot.loop)
-		fut.result()
-
-	async def __on_on_forgottenpunk_minted(self, token_id, minter_addr):
-		logger.info("FORGED %s", token_id)
-		try:
-			await bot.wait_until_ready()
-			fp_file = ForgottenPunks.get_image(token_id)
-			fp_meta = ForgottenPunks.get_meta(token_id)
-			attributes = fp_meta['attributes']
-			name = fp_meta['name']
-			title = "{} has been minted!".format(name)
-			url = "https://opensea.io/assets/ethereum/0x4adDAc15971AB60Ead954B8F15a67518730450e0/{}".format(token_id)
-			head = next(filter(lambda a: a['trait_type'] == 'Head', attributes))['value']
-			bg = next(filter(lambda a: a['trait_type'] == 'Background', attributes))['value']
-			att = next(filter(lambda a: a['trait_type'] == 'Attachment', attributes))
-			fields = []
-			fields.append(("Head", head))
-			try:
-				fields.append(("Attachment", att['value']))
-			except:
-				pass
-			fields.append(("Background", bg))
-			# sales-chat: 863044365299220511
-			# fp general: 1027916767609233420
-			# test-chat: 437876896664125443
-			post_in_channels = [1027916767609233420]
-			# post_in_channels = [437876896664125443]
-			for channel in post_in_channels:
-				await DiscordUtils.embed_image(bot.get_channel(channel), title, fp_file, fp_file.split('/')[-1], fields=fields, color=discord.Colour.purple(), url=url)
+			channel = bot.get_channel(437876896664125443)
+			await DiscordUtils.embed_image(channel, "A Weapon has been Forged!", warrior_file, warrior_file.split('/')[-1], fields=fields, color=discord.Colour.gold(), thumbnail=forged_with_url)
 		except Exception as e:
 			logger.error(e)
 
@@ -452,11 +419,6 @@ def main():
 	except:
 		print("Could not start WeaponForge.Observer")
 
-	# try:
-	# 	obvs = ForgottenPunks.Observer(BotWrapper(bot))
-	# 	obvs.start_worker()
-	# except:
-	# 	print("Could not start ForgottenPunks.Observer")
 
 	#
 	# Run bot
@@ -465,8 +427,8 @@ def main():
 		file = open('creds.json', 'r')
 		access_token = json.load(file)['access_token']
 		bot.run(access_token)
-	except:
-		print("Missing or faulty creds.json")
+	except Exception as e:
+		print(e)
 
 if __name__ == '__main__':
     main()
