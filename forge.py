@@ -148,7 +148,7 @@ class WeaponForge(object):
         def start_worker(self):
             if self.worker is None:
                 block_filter = self.forgeContract.events.WarriorWeaponForged.createFilter(fromBlock=0 if use_testnet else 16176368, toBlock='latest')
-                self.worker = Thread(target=WeaponForge.Observer.log_loop, args=(self, block_filter, 10, True), daemon=True)
+                self.worker = Thread(target=WeaponForge.Observer.log_loop, args=(self, block_filter, 10, use_testnet), daemon=True)
                 self.worker.start()
             else:
                 print("Attempting to start worker that is already running, ignored.")

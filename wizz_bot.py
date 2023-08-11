@@ -130,7 +130,7 @@ async def pony_walkcycle(ctx, pony_id):
 		img = WizardFactory.get_pony_walkcycle(99999, pony_id)
 		await DiscordUtils.embed_image(ctx, "Pony #{}".format(pony_id), img, "ponywalk.gif")
 	except:
-		await ctx.send("Could not mount {} to {}".format(wiz_id, pony_id))
+		await ctx.send("Could notget walkcycle for {}".format(pony_id))
 
 @bot.command(name="ponyride", aliases=["pr"])
 async def pony_walkcycle(ctx, wiz_id, pony_id):
@@ -374,6 +374,17 @@ So choose wisely.
 [Read more about The Great Burning](https://www.forgottenrunes.com/posts/forgotten-souls)"""
 	await DiscordUtils.embed_image(ctx, title, file, filename, description=description)
 
+
+#
+# 3D
+#
+@bot.command(name="3dwiz", aliases=["3d"])
+async def wiz_3d(ctx, wiz_id):
+	try:
+		img = WizardFactory.get_wiz_3d_hero_shot(wiz_id)
+		await DiscordUtils.embed_image(ctx, "Wizard #{}".format(wiz_id), img, "3dWiz.png")
+	except:
+		await ctx.send("Could not get 3D hero shot for {}".format(wiz_id))
 
 #
 # Wrapper for our bot, used by Forge to callback
