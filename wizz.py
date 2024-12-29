@@ -166,7 +166,7 @@ class WizardFactory:
         return BytesIO(response.content)
 
     @staticmethod
-    def get_3d_hero_shot(token_id, phrase, is_soul=False, is_warrior=False):
+    def get_3d_hero_shot(token_id, is_soul=False, is_warrior=False):
         prefix = "soul" if is_soul else "warrior" if is_warrior else "wizard"
         url = "https://nftz.forgottenrunes.com/dev/3d/{}s/{}/{}_{}.png".format(prefix, token_id, prefix, token_id)
         response = requests.get(url)
