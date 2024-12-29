@@ -386,6 +386,22 @@ async def wiz_3d(ctx, wiz_id):
 	except:
 		await ctx.send("Could not get 3D hero shot for {}".format(wiz_id))
 
+@bot.command(name="3dsoul", aliases=["3ds"])
+async def soul_3d(ctx, token_id):
+	try:
+		img = WizardFactory.get_soul_3d_hero_shot(token_id)
+		await DiscordUtils.embed_image(ctx, "Soul #{}".format(wiz_id), img, "3dSoul.png")
+	except:
+		await ctx.send("Could not get 3D hero shot for {}".format(wiz_id))
+
+@bot.command(name="3dwarr", aliases=["3dw"])
+async def warr_3d(ctx, token_id):
+	try:
+		img = WizardFactory.get_warr_3d_hero_shot(token_id)
+		await DiscordUtils.embed_image(ctx, "Warrior #{}".format(wiz_id), img, "3dWarr.png")
+	except:
+		await ctx.send("Could not get 3D hero shot for {}".format(wiz_id))
+
 #
 # Wrapper for our bot, used by Forge to callback
 #
