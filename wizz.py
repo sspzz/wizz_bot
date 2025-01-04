@@ -166,11 +166,23 @@ class WizardFactory:
         return BytesIO(response.content)
 
     @staticmethod
-    def get_wiz_3d_hero_shot(token_id):
-        url = "https://nftz.forgottenrunes.com/dev/3d/wizards/{}/wizard_{}.png".format(
-            token_id, token_id)
+    def get_3d_hero_shot(token_id, is_soul=False, is_warrior=False):
+        prefix = "soul" if is_soul else "warrior" if is_warrior else "wizard"
+        url = "https://nftz.forgottenrunes.com/dev/3d/{}s/{}/{}_{}.png".format(prefix, token_id, prefix, token_id)
         response = requests.get(url)
         return BytesIO(response.content)
+
+    @staticmethod
+    def get_wiz_3d_hero_shot(token_id):
+        return get_3d_hero_shot(token_id)
+
+    @staticmethod
+    def get_soul_3d_hero_shot(token_id):
+        return get_3d_hero_shot(token_id, True)
+        
+    @staticmethod
+    def get_warr_3d_hero_shot(token_id):
+        return get_3d_hero_shot(token_id, False, True)
 
     @staticmethod
     def catchphrase(token_id, phrase, is_soul=False, is_warrior=False):
