@@ -67,7 +67,7 @@ class Listing(object):
 		return "{}, #{} - {}, {} {}".format(self.date_str, self.token_id, self.name, self.price, self.currency)
 
 def get_wiz_url(wiz_id):
-	return "https://opensea.io/assets/{}/{}".format(contract_wizards, wiz_id)
+	return "https://opensea.io/item/ethereum/{}/{}".format(contract_wizards, wiz_id)
 
 def get_listings(contract_address, num):
 	parameters = { 
